@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="is">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Líf.is - smella, fikta, safna og sjá hvaða sögu hlutirnir segja.">
+  <title>líf.is</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%23ffde59'/%3E%3Ctext x='50' y='70' text-anchor='middle' font-size='58'%3E%3F%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="world" data-time="morning" data-weather="clear" data-indoor="false" aria-label="Líf.is">
+    <div class="sky" aria-hidden="true">
+      <div class="stars"></div>
+      <div class="sun"></div>
+      <div class="moon"></div>
+      <div class="birds"><i></i><i></i><i></i></div>
+      <div class="weather weather-clouds"><i class="cloud cloud-a"></i><i class="cloud cloud-b"></i><i class="cloud cloud-c"></i></div>
+      <div class="weather weather-storm"><i class="storm-cloud"></i><i class="lightning"></i></div>
+      <div class="precip"><i class="rain"></i><i class="snow"></i></div>
+    </div>
+
+    <header class="topbar">
+      <button class="logo" id="logoButton" aria-label="Smelltu á líf.is">líf<span>.</span>is</button>
+      <div class="status" aria-label="Staða sögunnar">
+        <span class="day-count" id="dayCount">Dagur 1 af 3</span>
+        <button class="weather-badge" id="weatherButton" title="Breyta veðrinu"><span id="weatherIcon" aria-hidden="true">☀</span> <span id="weatherName">heiðskírt</span></button>
+        <span class="time-badge" id="timeName">morgunn</span>
+      </div>
+    </header>
+
+    <section class="stage" id="stage" aria-labelledby="placeName">
+      <div class="page-back" aria-hidden="true"></div>
+      <div class="scene-frame" id="frame">
+        <svg class="landscape" id="landscape" viewBox="0 0 1200 760" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Handteiknað umhverfi"><g id="sceneArt"></g></svg>
+        <div class="precip fx-weather" aria-hidden="true"><i class="rain"></i><i class="snow"></i></div>
+        <div class="indoor-shade" aria-hidden="true"></div>
+        <div class="speech" id="speech" role="status" aria-live="polite"></div>
+        <div class="hint" id="hint"></div>
+      </div>
+      <div class="choice" id="choice" role="dialog" aria-label="Ákvörðun" hidden></div>
+      <div class="chapter"><span id="chapterNumber">1</span> / 12 · <span id="placeName">Heima</span></div>
+    </section>
+
+    <nav class="controls" aria-label="Aðgerðir í sögunni">
+      <button class="big-button look" data-action="look">SKOÐA</button>
+      <button class="big-button fiddle" data-action="fiddle">FIKTA</button>
+      <button class="big-button forward" data-action="forward">ÁFRAM <span aria-hidden="true">→</span></button>
+    </nav>
+
+    <section class="bag" aria-label="Taskan">
+      <div class="bag-title">Taskan</div>
+      <div class="bag-slots" id="bagSlots"></div>
+      <div class="bag-side">
+        <button class="thread-button" id="threadButton">Þræðir <b id="threadCount">0</b>/8</button>
+        <button class="quiet-button" id="quietButton" aria-pressed="false">shhh</button>
+      </div>
+    </section>
+
+    <div class="card" id="card" role="dialog" aria-label="Hlutur í töskunni" hidden></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </main>
+
+  <div class="book" id="book" role="dialog" aria-modal="true" aria-label="Sagan" hidden>
+    <div class="book-page">
+      <button class="book-close" id="bookClose" aria-label="Loka">×</button>
+      <div id="bookContent"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
