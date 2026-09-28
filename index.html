@@ -1,0 +1,1514 @@
+<!doctype html>
+<html lang="is">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Líf</title>
+<meta name="description" content="Ferðalag í gegnum liti, löngun, líf og list. Gagnvirk upplifun byggð á rannsóknum um vellíðan, gleði og sköpun.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300;1,9..144,400&family=Figtree:wght@400;500;600&display=swap">
+<style>
+  /* Lif er eitt sjónrænt rými (haf og himinn), því er einn dökkur heimur valinn meðvitað. */
+  :root {
+    color-scheme: dark;
+    --ink: #070b1a;
+    --foam: #f6f3ea;
+    --foam-dim: rgba(246, 243, 234, .72);
+    --foam-faint: rgba(246, 243, 234, .45);
+    --glass: rgba(7, 11, 26, .44);
+    --glass-edge: rgba(246, 243, 234, .14);
+    --lupine: #9a82ea;
+    --soley: #ffd23f;
+    --sea: #34b3b8;
+    --accent: #ffd23f;
+    --display: "Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+    --body: "Figtree", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --ease: cubic-bezier(.22, .8, .24, 1);
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; overflow: hidden; background: var(--ink); color: var(--foam);
+    font-family: var(--body); font-size: 15px; line-height: 1.55;
+    -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
+  }
+  canvas#c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  /* ---------- merkimiðar sem fylgja ljósum, fuglum og stjörnum ---------- */
+  #labels { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+  .tag {
+    position: absolute; left: 0; top: 0; white-space: nowrap; transform-origin: 50% 100%;
+    font-family: var(--display); font-style: italic; font-weight: 300; font-size: 15px;
+    color: var(--foam); text-shadow: 0 0 12px rgba(0,0,0,.55), 0 0 2px rgba(0,0,0,.6);
+    transition: opacity .8s;
+  }
+  .tag.star { font-size: 12px; color: var(--foam-dim); }
+
+  /* ---------- efsta lína ---------- */
+  #hud {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 5;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: calc(14px + env(safe-area-inset-top, 0px)) 18px 0;
+    pointer-events: none; opacity: 0; transition: opacity 1.4s var(--ease);
+  }
+  body.started #hud { opacity: 1; }
+  #hud > * { pointer-events: auto; }
+  .brand { font-family: var(--display); font-weight: 300; font-size: 22px; letter-spacing: .02em; }
+  .brand i { color: var(--accent); font-style: normal; transition: color 1s; }
+  .hud-right { display: flex; align-items: center; gap: 8px; }
+  .dial { display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 6px; border-radius: 999px; background: var(--glass); border: 1px solid var(--glass-edge); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  .dial svg { display: block; }
+  .dial span { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--foam-dim); min-width: 6.5em; }
+  .icon-btn {
+    width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
+    background: var(--glass); border: 1px solid var(--glass-edge); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    transition: background .3s, transform .3s var(--ease);
+  }
+  .icon-btn:hover { background: rgba(246,243,234,.14); transform: scale(1.06); }
+  .icon-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ---------- inngangur ---------- */
+  #intro {
+    position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; text-align: center;
+    padding: 24px 16px; background: radial-gradient(ellipse at 50% 60%, rgba(7,11,26,.15), rgba(7,11,26,.72));
+    transition: opacity 2.2s var(--ease), visibility 2.2s;
+  }
+  body.started #intro { opacity: 0; visibility: hidden; }
+  .intro-inner { max-width: 34rem; display: grid; gap: 18px; justify-items: center; }
+  .intro-title { margin: 0; font-family: var(--display); font-weight: 300; font-size: clamp(88px, 22vw, 190px); line-height: .9; letter-spacing: .04em; }
+  .intro-title span { display: inline-block; animation: rise 2.4s var(--ease) both; }
+  .intro-title span:nth-child(2) { animation-delay: .25s; }
+  .intro-title span:nth-child(3) { animation-delay: .5s; }
+  .intro-sub { margin: 0; font-family: var(--display); font-style: italic; font-weight: 300; font-size: clamp(19px, 3.4vw, 26px); color: var(--foam); text-wrap: balance; animation: fade 2s .9s both; }
+  .intro-note { margin: 0; font-size: 13px; letter-spacing: .06em; color: var(--foam-dim); animation: fade 2s 1.3s both; }
+  .enter {
+    margin-top: 10px; cursor: pointer; border: 1px solid rgba(246,243,234,.5); background: rgba(246,243,234,.08);
+    padding: 14px 34px; border-radius: 999px; font-size: 15px; letter-spacing: .14em; text-transform: uppercase;
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); animation: fade 2s 1.7s both;
+    transition: background .4s, border-color .4s, letter-spacing .6s var(--ease);
+  }
+  .enter:hover { background: rgba(246,243,234,.18); border-color: var(--foam); letter-spacing: .2em; }
+  @keyframes rise { from { opacity: 0; transform: translateY(28px); filter: blur(8px); } to { opacity: 1; transform: none; filter: none; } }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+  /* ---------- kaflaspjald ---------- */
+  #panel {
+    position: fixed; z-index: 4; left: max(18px, 3vw); bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+    width: min(30rem, calc(100vw - 36px)); max-height: calc(100% - 180px); overflow-y: auto;
+    padding: 26px 28px 22px; border-radius: 22px;
+    background: linear-gradient(160deg, rgba(7,11,26,.58), rgba(7,11,26,.34));
+    border: 1px solid var(--glass-edge); backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2);
+    opacity: 0; transform: translateY(16px); transition: opacity 1s var(--ease), transform 1s var(--ease);
+    scrollbar-width: thin;
+  }
+  body.started #panel.show { opacity: 1; transform: none; }
+  body.free #panel, body.free #nav { opacity: 0 !important; pointer-events: none; }
+  .kicker { display: flex; gap: 10px; align-items: baseline; font-size: 11.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--foam-dim); }
+  .kicker b { color: var(--accent); font-weight: 600; transition: color 1s; font-variant-numeric: tabular-nums; }
+  #panel h2 { margin: 8px 0 12px; font-family: var(--display); font-weight: 300; font-size: clamp(32px, 4.4vw, 44px); line-height: 1.04; text-wrap: balance; }
+  .lines { display: grid; gap: 8px; font-family: var(--display); font-weight: 300; font-size: 18.5px; line-height: 1.5; }
+  .lines p { margin: 0; animation: lineIn 1.4s var(--ease) both; }
+  .lines p.poem { font-style: italic; }
+  @keyframes lineIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .interact { margin-top: 18px; display: grid; gap: 12px; }
+  .interact:empty { display: none; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    cursor: pointer; border: 1px solid rgba(246,243,234,.28); background: rgba(246,243,234,.06);
+    padding: 8px 16px; border-radius: 999px; font-size: 14px; transition: background .3s, border-color .3s;
+  }
+  .chip:hover, .chip.on { background: rgba(246,243,234,.18); border-color: var(--foam); }
+  .chip.solid { background: var(--foam); color: var(--ink); border-color: var(--foam); font-weight: 600; }
+  .chip.solid:hover { background: #fff; }
+  .form { display: flex; gap: 8px; }
+  .form input {
+    flex: 1; min-width: 0; font: inherit; font-family: var(--display); font-style: italic; font-size: 17px; color: var(--foam);
+    background: rgba(246,243,234,.07); border: 1px solid rgba(246,243,234,.28); border-radius: 999px; padding: 9px 16px;
+  }
+  .form input::placeholder { color: var(--foam-faint); }
+  .form input:focus { outline: none; border-color: var(--accent); }
+  .meta { font-size: 13px; color: var(--foam-dim); font-variant-numeric: tabular-nums; }
+  .swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+  .swatch { cursor: pointer; display: grid; justify-items: center; gap: 6px; background: none; border: 0; padding: 0; font-size: 12px; color: var(--foam-dim); }
+  .swatch i { width: 38px; height: 38px; border-radius: 50%; box-shadow: 0 0 0 2px rgba(246,243,234,.15), 0 0 22px -2px var(--c); background: radial-gradient(circle at 35% 30%, #fff8, transparent 55%), var(--c); transition: transform .4s var(--ease), box-shadow .4s; }
+  .swatch:hover i, .swatch.on i { transform: scale(1.14); box-shadow: 0 0 0 2px var(--foam), 0 0 30px 2px var(--c); }
+  .breath { display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; }
+  .breath-orb { width: 92px; height: 92px; border-radius: 50%; display: grid; place-items: center; position: relative; }
+  .breath-orb::before { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 1px solid rgba(246,243,234,.3); }
+  .breath-orb i { width: 100%; height: 100%; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--accent) 70%, transparent), transparent 70%); transform: scale(.35); transition: transform 4s cubic-bezier(.45,0,.35,1); }
+  .breath-word { font-family: var(--display); font-style: italic; font-size: 22px; }
+
+  details.science { margin-top: 18px; border-top: 1px solid rgba(246,243,234,.14); padding-top: 12px; }
+  details.science summary { cursor: pointer; list-style: none; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--foam-dim); display: flex; gap: 8px; align-items: center; }
+  details.science summary::-webkit-details-marker { display: none; }
+  details.science summary::before { content: "+"; font-size: 16px; line-height: 1; color: var(--accent); transition: transform .3s; }
+  details.science[open] summary::before { transform: rotate(45deg); }
+  details.science p { margin: 10px 0 6px; font-size: 14.5px; color: var(--foam); max-width: 62ch; }
+  details.science cite { display: block; font-style: normal; font-size: 12.5px; color: var(--foam-faint); }
+
+  /* ---------- leiðsögn ---------- */
+  #nav {
+    position: fixed; z-index: 4; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+    display: flex; align-items: center; gap: 14px; padding: 8px; border-radius: 999px;
+    background: var(--glass); border: 1px solid var(--glass-edge); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    opacity: 0; transition: opacity 1.4s var(--ease);
+  }
+  body.started #nav { opacity: 1; }
+  .dots { display: flex; gap: 7px; }
+  .dot { width: 8px; height: 8px; padding: 0; border-radius: 50%; border: 0; cursor: pointer; background: rgba(246,243,234,.28); transition: background .4s, transform .4s; }
+  .dot.on { background: var(--accent); transform: scale(1.35); }
+  .dot.seen { background: rgba(246,243,234,.6); }
+  #hint { position: fixed; z-index: 3; right: 18px; bottom: calc(26px + env(safe-area-inset-bottom, 0px)); font-size: 12px; letter-spacing: .06em; color: var(--foam-dim); opacity: 0; transition: opacity 1.2s; pointer-events: none; text-align: right; }
+  body.started #hint { opacity: .85; }
+  #back { position: fixed; z-index: 6; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); }
+
+  /* ---------- heimildir ---------- */
+  #sources { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 24px 16px; background: rgba(4,6,14,.72); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+  .sources-card { width: min(44rem, 100%); max-height: 100%; overflow-y: auto; padding: 30px 30px 26px; border-radius: 22px; background: #0c1226; border: 1px solid var(--glass-edge); }
+  .sources-card h3 { margin: 0 0 6px; font-family: var(--display); font-weight: 300; font-size: 32px; }
+  .sources-card ol { margin: 14px 0 0; padding-left: 1.3em; display: grid; gap: 8px; font-size: 13.5px; color: var(--foam-dim); }
+  .sources-card ol i { color: var(--foam); }
+  .care { margin-top: 20px; padding: 14px 16px; border-radius: 14px; background: rgba(246,243,234,.06); font-size: 14px; }
+  .care b { font-weight: 600; color: var(--accent); }
+
+  @media (max-width: 640px) {
+    #panel { left: 12px; right: 12px; width: auto; bottom: calc(78px + env(safe-area-inset-bottom, 0px)); max-height: 52%; padding: 20px 20px 16px; border-radius: 18px; }
+    .lines { font-size: 16.5px; }
+    .dial span { display: none; }
+    .dial { padding: 4px; }
+    #hint { display: none; }
+    #nav { bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<canvas id="c" aria-label="Engi, haf og himinn"></canvas>
+<div id="labels" aria-hidden="true"></div>
+
+<header id="hud">
+  <div class="brand">líf<i>.</i></div>
+  <div class="hud-right">
+    <div class="dial" title="Heill dagur líður á 90 sekúndum">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
+        <circle cx="15" cy="15" r="11" fill="none" stroke="rgba(246,243,234,.25)"/>
+        <line x1="2" y1="15" x2="28" y2="15" stroke="rgba(246,243,234,.2)"/>
+        <circle id="dial-sun" cx="4" cy="15" r="3.4" fill="#ffd23f"/>
+        <circle id="dial-moon" cx="26" cy="15" r="2.6" fill="#d8e2ff"/>
+      </svg>
+      <span id="dial-label">Dögun</span>
+    </div>
+    <button class="icon-btn" id="btn-sound" aria-label="Slökkva á hljóði" title="Hljóð">
+      <svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path class="wave" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+    </button>
+    <button class="icon-btn" id="btn-free" aria-label="Fela texta og vera hér" title="Fela texta">
+      <svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+    </button>
+    <button class="icon-btn" id="btn-full" aria-label="Fylla skjáinn" title="Fullur skjár">
+      <svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+    </button>
+  </div>
+</header>
+
+<section id="intro">
+  <div class="intro-inner">
+    <h1 class="intro-title" aria-label="Líf"><span>L</span><span>Í</span><span>F</span></h1>
+    <p class="intro-sub">ferðalag í gegnum liti, löngun, líf og list</p>
+    <p class="intro-note">Heill dagur líður á 90 sekúndum · Settu á þig heyrnartól ef þú getur</p>
+    <button class="enter" id="btn-enter">Stíga inn</button>
+  </div>
+</section>
+
+<main id="panel" aria-live="polite">
+  <div class="kicker"><b id="k-num">1 / 10</b><span id="k-name"></span></div>
+  <h2 id="p-title"></h2>
+  <div class="lines" id="p-lines"></div>
+  <div class="interact" id="p-interact"></div>
+  <details class="science" id="p-science">
+    <summary>Hvað segja rannsóknir?</summary>
+    <p id="p-sci-text"></p>
+    <cite id="p-sci-cite"></cite>
+  </details>
+</main>
+
+<nav id="nav" aria-label="Kaflar">
+  <button class="icon-btn" id="btn-prev" aria-label="Fyrri kafli"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <div class="dots" id="dots"></div>
+  <button class="icon-btn" id="btn-next" aria-label="Næsti kafli"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+</nav>
+<div id="hint">Snertu engið til að sá blómum<br>Dragðu til að líta í kringum þig</div>
+<button class="chip" id="back" hidden>Sýna ferðalagið aftur</button>
+
+<section id="sources" hidden>
+  <div class="sources-card" role="dialog" aria-modal="true" aria-labelledby="src-h">
+    <h3 id="src-h">Heimildir</h3>
+    <p class="meta">Textinn í hverjum kafla er stutt og einfölduð samantekt. Hér eru frumheimildirnar fyrir þau sem vilja kafa dýpra.</p>
+    <ol>
+      <li>Killingsworth, M. A. &amp; Gilbert, D. T. (2010). A wandering mind is an unhappy mind. <i>Science</i>, 330(6006), 932.</li>
+      <li>Zaccaro, A. o.fl. (2018). How breath-control can change your life: A systematic review on psycho-physiological correlates of slow breathing. <i>Frontiers in Human Neuroscience</i>, 12, 353.</li>
+      <li>Balban, M. Y. o.fl. (2023). Brief structured respiration practices enhance mood and reduce physiological arousal. <i>Cell Reports Medicine</i>, 4(1), 100895.</li>
+      <li>White, M. P. o.fl. (2019). Spending at least 120 minutes a week in nature is associated with good health and wellbeing. <i>Scientific Reports</i>, 9, 7730.</li>
+      <li>Nichols, W. J. (2014). <i>Blue Mind</i>. Little, Brown.</li>
+      <li>Fredrickson, B. L. (2001). The role of positive emotions in positive psychology: The broaden-and-build theory of positive emotions. <i>American Psychologist</i>, 56(3), 218–226.</li>
+      <li>Piff, P. K., Dietze, P., Feinberg, M., Stancato, D. M. &amp; Keltner, D. (2015). Awe, the small self, and prosocial behavior. <i>Journal of Personality and Social Psychology</i>, 108(6), 883–899.</li>
+      <li>Keltner, D. (2023). <i>Awe: The New Science of Everyday Wonder</i>. Penguin Press.</li>
+      <li>Csikszentmihalyi, M. (1990). <i>Flow: The Psychology of Optimal Experience</i>. Harper &amp; Row.</li>
+      <li>Brown, S. (2009). <i>Play: How It Shapes the Brain, Opens the Imagination, and Invigorates the Soul</i>. Avery.</li>
+      <li>Emmons, R. A. &amp; McCullough, M. E. (2003). Counting blessings versus burdens. <i>Journal of Personality and Social Psychology</i>, 84(2), 377–389.</li>
+      <li>Waldinger, R. &amp; Schulz, M. (2023). <i>The Good Life: Lessons from the World's Longest Scientific Study of Happiness</i>. Simon &amp; Schuster.</li>
+      <li>Holt-Lunstad, J., Smith, T. B. &amp; Layton, J. B. (2010). Social relationships and mortality risk: A meta-analytic review. <i>PLoS Medicine</i>, 7(7), e1000316.</li>
+      <li>Dunn, E. W., Aknin, L. B. &amp; Norton, M. I. (2008). Spending money on others promotes happiness. <i>Science</i>, 319(5870), 1687–1688.</li>
+      <li>Aknin, L. B. o.fl. (2013). Prosocial spending and well-being: Cross-cultural evidence for a psychological universal. <i>Journal of Personality and Social Psychology</i>, 104(4), 635–652.</li>
+      <li>Seligman, M. E. P. (2011). <i>Flourish</i>. Free Press.</li>
+      <li>Frankl, V. E. (1946/2006). <i>Man's Search for Meaning</i>. Beacon Press.</li>
+    </ol>
+    <div class="care">Þessi síða er gjöf, ekki meðferð. Ef þér líður illa skaltu tala við einhvern sem þú treystir. <b>Hjálparsími Rauða krossins: 1717</b>, opinn allan sólarhringinn.</div>
+    <div class="row" style="margin-top:18px"><button class="chip solid" id="btn-close-src">Loka</button></div>
+  </div>
+</section>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+/* =====================================================================
+   Grunnstillingar
+   ===================================================================== */
+const DAY_SECONDS = 90;          // heill sólarhringur
+const WAVE_PERIOD = 9.0;         // ein alda skellur á ströndinni
+const CRASH_AT = 0.72;           // hvar í öldulotunni hún brotnar
+const MOBILE = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
+const Q = MOBILE ? 0.5 : 1;      // gæðastuðull
+
+const rand = (a, b) => a + Math.random() * (b - a);
+const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+const hash1 = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('lif.' + k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem('lif.' + k, JSON.stringify(v)); } catch {} }
+};
+
+/* Landslag: sama fall í JS og GLSL svo fjaran og froðan passi saman */
+const coast = x => 5.0 * Math.sin(x * 0.021) + 3.0 * Math.sin(x * 0.057 + 1.3);
+function terrainH(x, z) {
+  const zz = z + coast(x);
+  return -2.2 + 0.14 * zz + 2.0 * smooth(14, 34, zz)
+    + smooth(20, 40, zz) * (0.9 * Math.sin(x * 0.06 + zz * 0.04) + 0.6 * Math.sin(x * 0.11 - zz * 0.07 + 2.0));
+}
+
+/* =====================================================================
+   Renderer og sena
+   ===================================================================== */
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, MOBILE ? 1.5 : 1.75));
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 8000);
+
+const rt = new THREE.WebGLRenderTarget(innerWidth, innerHeight, { type: THREE.HalfFloatType, samples: MOBILE ? 0 : 4 });
+const composer = new EffectComposer(renderer, rt);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth / 2, innerHeight / 2), 0.55, 0.6, 0.86);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+/* Sameiginleg uniforms: allur heimurinn deilir sama himni, sól og tíma */
+const U = {
+  uTime: { value: 0 }, uCloudTime: { value: 0 },
+  uSunDir: { value: new THREE.Vector3(0, 0.1, -1) }, uMoonDir: { value: new THREE.Vector3(0, -0.1, -1) },
+  uSunColor: { value: new THREE.Color() }, uMoonColor: { value: new THREE.Color('#b9c8ff') },
+  uZenith: { value: new THREE.Color() }, uHorizon: { value: new THREE.Color() }, uAmbient: { value: new THREE.Color() },
+  uDay: { value: 1 }, uNight: { value: 0 }, uFogDensity: { value: 0.0011 }, uWind: { value: 1 },
+  uAurora: { value: new THREE.Color('#5dffb0') }, uCloudLit: { value: new THREE.Color() }, uCloudDark: { value: new THREE.Color() },
+  uDeep: { value: new THREE.Color() }, uShallow: { value: new THREE.Color() }, uSand: { value: new THREE.Color('#4a4440') },
+  uSurgePhase: { value: 0 }, uSurgeAmp: { value: 1 },
+};
+
+const GLSL_COMMON = /* glsl */`
+uniform float uTime; uniform float uCloudTime;
+uniform vec3 uSunDir; uniform vec3 uMoonDir; uniform vec3 uSunColor; uniform vec3 uMoonColor;
+uniform vec3 uZenith; uniform vec3 uHorizon; uniform vec3 uAmbient;
+uniform float uDay; uniform float uNight; uniform float uFogDensity; uniform float uWind;
+float hash21(vec2 p){ p = fract(p*vec2(123.34, 456.21)); p += dot(p, p+45.32); return fract(p.x*p.y); }
+float hash31(vec3 p){ p = fract(p*0.1031); p += dot(p, p.zyx+31.32); return fract((p.x+p.y)*p.z); }
+float vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); vec2 u=f*f*(3.-2.*f);
+  return mix(mix(hash21(i),hash21(i+vec2(1,0)),u.x), mix(hash21(i+vec2(0,1)),hash21(i+vec2(1,1)),u.x), u.y); }
+float fbm(vec2 p){ float a=0.5, s=0.; for(int i=0;i<5;i++){ s+=a*vnoise(p); p=p*2.03+vec2(1.7,9.2); a*=0.5; } return s; }
+float coast(float x){ return 5.0*sin(x*0.021) + 3.0*sin(x*0.057+1.3); }
+float terrainH(vec2 p){ float zz = p.y + coast(p.x);
+  return -2.2 + 0.14*zz + 2.0*smoothstep(14.,34.,zz)
+    + smoothstep(20.,40.,zz)*(0.9*sin(p.x*0.06+zz*0.04)+0.6*sin(p.x*0.11-zz*0.07+2.0)); }
+vec3 atmosphere(vec3 d){
+  float up = max(d.y, 0.0);
+  vec3 col = mix(uHorizon, uZenith, pow(up, 0.5));
+  col = mix(col, uHorizon*0.5, smoothstep(0.0, -0.3, d.y));
+  float sd = max(dot(d, uSunDir), 0.0);
+  float sunVis = smoothstep(-0.3, 0.03, uSunDir.y);
+  col += uSunColor * (pow(sd, 5.0)*0.32 + pow(sd, 42.0)*0.55) * sunVis;
+  float md = max(dot(d, uMoonDir), 0.0);
+  col += uMoonColor * pow(md, 20.0) * 0.1 * uNight;
+  return col;
+}
+vec3 fogMix(vec3 col, vec3 wp){
+  vec3 v = wp - cameraPosition; float dist = length(v); vec3 dir = v/dist;
+  dir.y = max(dir.y, 0.0)*0.5 + 0.01;
+  float f = 1.0 - exp(-dist*uFogDensity);
+  return mix(col, atmosphere(normalize(dir)), f);
+}
+vec3 lightAt(vec3 N){
+  float sunVis = smoothstep(-0.08, 0.06, uSunDir.y);
+  float moonVis = smoothstep(-0.05, 0.1, uMoonDir.y) * uNight;
+  return uAmbient*0.85 + uSunColor*max(dot(N,uSunDir),0.0)*1.15*sunVis + uMoonColor*max(dot(N,uMoonDir),0.0)*0.14*moonVis;
+}
+`;
+
+/* =====================================================================
+   Himinn: litir, sól, tungl, stjörnur, norðurljós og ský
+   ===================================================================== */
+const sky = new THREE.Mesh(
+  new THREE.SphereGeometry(4000, 48, 24),
+  new THREE.ShaderMaterial({
+    uniforms: U, side: THREE.BackSide, depthWrite: false,
+    vertexShader: /* glsl */`
+      varying vec3 vDir;
+      void main(){ vDir = position; vec4 p = projectionMatrix*modelViewMatrix*vec4(position,1.); gl_Position = p.xyww; }`,
+    fragmentShader: GLSL_COMMON + /* glsl */`
+      uniform vec3 uAurora; uniform vec3 uCloudLit; uniform vec3 uCloudDark;
+      varying vec3 vDir;
+      void main(){
+        vec3 d = normalize(vDir);
+        vec3 col = atmosphere(d);
+        float above = smoothstep(-0.01, 0.06, d.y);
+        if (uNight > 0.01 && d.y > -0.02) {
+          vec3 sp = d*260.0; vec3 id = floor(sp); float h = hash31(id);
+          float star = smoothstep(0.16, 0.0, length(fract(sp)-0.5)) * step(0.982, h) * (0.35 + (h-0.982)/0.018);
+          float tw = 0.6 + 0.4*sin(uTime*(1.3+h*6.0)+h*90.0);
+          col += mix(vec3(0.75,0.85,1.0), vec3(1.0,0.9,0.75), fract(h*37.)) * star*tw*2.4*uNight*smoothstep(0.02,0.25,d.y);
+          float band = exp(-pow(dot(d, normalize(vec3(0.55,0.3,0.78)))*3.6, 2.0));
+          col += vec3(0.45,0.5,0.8) * band * fbm(d.xy*7.0 + d.z*4.0) * 0.16 * uNight * smoothstep(0.0,0.3,d.y);
+          // norðurljós: tjöld í nokkrum hæðarlögum
+          vec3 aur = vec3(0.0);
+          for (int i = 0; i < 10; i++) {
+            float fi = float(i);
+            float alt = 1.0 + fi*0.09;
+            vec2 q = d.xz * alt / max(d.y, 0.035);
+            float center = -3.4 + sin(q.x*0.23 + uTime*0.05)*0.9 + (vnoise(vec2(q.x*0.35 + uTime*0.04, fi*0.3))-0.5)*1.8;
+            float ribbon = exp(-abs(q.y - center)*2.6);
+            float rays = 0.55 + 0.45*vnoise(vec2(q.x*2.6 - uTime*0.25, fi*0.7));
+            aur += mix(uAurora, vec3(0.62,0.35,1.0), fi/10.0) * ribbon * rays * (1.0 - fi/11.0);
+          }
+          col += aur * 0.09 * uNight * smoothstep(0.02, 0.14, d.y) * smoothstep(0.95, 0.5, d.y);
+        }
+        // sólin og tunglið
+        float sd = dot(d, uSunDir);
+        col += uSunColor * 9.0 * smoothstep(0.99955, 0.9998, sd) * smoothstep(-0.04, 0.02, uSunDir.y) * above;
+        float md = dot(d, uMoonDir);
+        float moonDisc = smoothstep(0.99962, 0.99985, md) * smoothstep(-0.03, 0.03, uMoonDir.y) * above;
+        float crater = 0.78 + 0.22*vnoise(d.xy*1400.0);
+        col = mix(col, uMoonColor * 1.9 * crater, moonDisc * (0.35 + 0.65*uNight));
+        // ský
+        if (d.y > 0.0) {
+          vec2 cuv = d.xz/(d.y + 0.1) * 0.85 + vec2(uCloudTime*0.011, uCloudTime*0.004);
+          float n = fbm(cuv);
+          float cov = smoothstep(0.5, 0.78, n);
+          float n2 = fbm(cuv + normalize(uSunDir.xz + 1e-4)*0.07);
+          float shade = clamp(0.55 + (n - n2)*4.0, 0.0, 1.0);
+          vec3 cc = mix(uCloudDark, uCloudLit, shade);
+          float glow = pow(max(sd, 0.0), 9.0);
+          cc += uSunColor * glow * (1.0 - cov*0.5) * 0.9 * smoothstep(-0.2, 0.05, uSunDir.y);
+          cc += uMoonColor * pow(max(md,0.0), 12.0) * 0.25 * uNight;
+          col = mix(col, cc, cov * smoothstep(0.0, 0.16, d.y) * 0.94);
+        }
+        gl_FragColor = vec4(col, 1.0);
+      }`
+  })
+);
+sky.frustumCulled = false;
+sky.renderOrder = -1;
+scene.add(sky);
+
+/* =====================================================================
+   Hafið: Gerstner-öldur, brot við fjöruna og froða
+   ===================================================================== */
+function makeOceanGeometry(segX, segZ) {
+  const pos = [], idx = [];
+  for (let j = 0; j <= segZ; j++) {
+    const v = j / segZ;
+    const z = 42 - 2600 * Math.pow(v, 2.2);
+    for (let i = 0; i <= segX; i++) {
+      const u = (i / segX) * 2 - 1;
+      const x = Math.sign(u) * Math.pow(Math.abs(u), 2.2) * 2600;
+      pos.push(x, 0, z);
+    }
+  }
+  for (let j = 0; j < segZ; j++) for (let i = 0; i < segX; i++) {
+    const a = j * (segX + 1) + i, b = a + 1, c = a + segX + 1, d = c + 1;
+    idx.push(a, b, c, b, d, c);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  return g;
+}
+const ocean = new THREE.Mesh(
+  makeOceanGeometry(Math.round(420 * Math.sqrt(Q)), Math.round(420 * Math.sqrt(Q))),
+  new THREE.ShaderMaterial({
+    uniforms: U,
+    vertexShader: GLSL_COMMON + /* glsl */`
+      uniform float uSurgePhase; uniform float uSurgeAmp;
+      varying vec3 vWorld; varying vec3 vN; varying float vFoam; varying float vCrest;
+      vec3 gerstner(vec4 w, vec2 p, float am, inout vec3 T, inout vec3 B){
+        float steep = w.z*am; float k = 6.28318/w.w; float c = sqrt(9.8/k);
+        vec2 d = normalize(w.xy); float f = k*(dot(d,p) - c*uTime); float a = steep/k;
+        float sf = sin(f), cf = cos(f);
+        T += vec3(-d.x*d.x*steep*sf, d.x*steep*cf, -d.x*d.y*steep*sf);
+        B += vec3(-d.x*d.y*steep*sf, d.y*steep*cf, -d.y*d.y*steep*sf);
+        return vec3(d.x*a*cf, a*sf, d.y*a*cf);
+      }
+      void main(){
+        vec3 p = position; vec2 xz = p.xz;
+        float zz = xz.y + coast(xz.x);
+        float am = mix(0.16, 1.0, smoothstep(10.0, -70.0, zz));
+        vec3 T = vec3(1,0,0), B = vec3(0,0,1), disp = vec3(0);
+        disp += gerstner(vec4( 0.12, 1.0, 0.09, 72.0), xz, am, T, B);
+        disp += gerstner(vec4(-0.30, 1.0, 0.11, 38.0), xz, am, T, B);
+        disp += gerstner(vec4( 0.45, 1.0, 0.10, 21.0), xz, am, T, B);
+        disp += gerstner(vec4(-0.60, 0.8, 0.12, 11.0), xz, am, T, B);
+        disp += gerstner(vec4( 0.90, 0.5, 0.10,  5.5), xz, 1.0, T, B);
+        // aldan sem rís, brotnar og skolast upp í fjöruna
+        float ph = uSurgePhase;
+        float crestZ = -48.0 + 60.0*clamp(ph/0.8, 0.0, 1.0);
+        float rel = zz - crestZ;
+        float wdt = rel > 0.0 ? 5.0 : 30.0;
+        float prof = exp(-rel*rel/wdt);
+        float grow = smoothstep(0.05, 0.62, ph) * (1.0 - smoothstep(0.70, 0.84, ph));
+        float shoal = smoothstep(-50.0, 5.0, zz);
+        float breaker = uSurgeAmp * grow * prof * (0.25 + 0.85*shoal);
+        float swT = clamp((ph - 0.70)/0.30, 0.0, 1.0);
+        float swash = uSurgeAmp * 0.6 * sin(swT*3.14159) * smoothstep(-6.0, 8.0, zz);
+        p += disp; p.y += breaker + swash;
+        float dh = -2.0*rel/wdt * breaker;
+        vN = normalize(normalize(cross(B, T)) + vec3(0.0, 0.0, -dh*0.8));
+        float curl = smoothstep(0.52, 0.72, ph) * exp(-(rel+2.0)*(rel+2.0)/7.0) * shoal;
+        float white = step(0.70, ph) * pow(1.0 - swT, 0.8) * smoothstep(-4.0, 9.0, zz);
+        vFoam = (curl*1.3 + white*0.9) * uSurgeAmp;
+        vCrest = disp.y + breaker*0.6;
+        vWorld = p;
+        gl_Position = projectionMatrix * viewMatrix * vec4(p, 1.0);
+      }`,
+    fragmentShader: GLSL_COMMON + /* glsl */`
+      uniform vec3 uDeep; uniform vec3 uShallow; uniform vec3 uSand;
+      varying vec3 vWorld; varying vec3 vN; varying float vFoam; varying float vCrest;
+      void main(){
+        float th = terrainH(vWorld.xz);
+        float depth = vWorld.y - th;
+        if (depth < -0.05) discard;
+        vec3 V = cameraPosition - vWorld; float dist = length(V); V /= dist;
+        vec2 q1 = vWorld.xz*0.33 + vec2(0.0, uTime*0.55), q2 = vWorld.xz*0.85 + vec2(uTime*0.35, uTime*0.18);
+        float e = 0.15;
+        float n0 = vnoise(q1) + 0.5*vnoise(q2);
+        float nx = vnoise(q1+vec2(e,0.)) + 0.5*vnoise(q2+vec2(e,0.));
+        float nz = vnoise(q1+vec2(0.,e)) + 0.5*vnoise(q2+vec2(0.,e));
+        vec3 N = normalize(vN + vec3(n0-nx, 0.0, n0-nz) * 1.1 * exp(-dist*0.004));
+        float NV = max(dot(N, V), 0.0);
+        float fres = 0.02 + 0.98*pow(1.0 - NV, 5.0);
+        vec3 R = reflect(-V, N); R.y = max(R.y, 0.01);
+        vec3 refl = atmosphere(normalize(R));
+        float sunVis = smoothstep(-0.04, 0.05, uSunDir.y);
+        vec3 spec = uSunColor * (pow(max(dot(R, uSunDir),0.0), 380.0)*14.0 + pow(max(dot(R, uSunDir),0.0), 40.0)*0.35) * sunVis;
+        float moonVis = uNight * smoothstep(-0.03, 0.05, uMoonDir.y);
+        spec += uMoonColor * pow(max(dot(R, uMoonDir),0.0), 220.0) * 5.0 * moonVis;
+        float lift = clamp(vCrest*0.3 + 0.25, 0.0, 1.0);
+        vec3 body = mix(uDeep, uShallow, clamp(lift*0.55 + smoothstep(3.5, 0.3, depth)*0.6, 0.0, 1.0));
+        body *= 0.55 + 0.45*(uAmbient.b*1.6 + uDay*0.3);
+        vec3 col = mix(body, refl, fres) + spec;
+        vec3 sandLit = uSand * lightAt(vec3(0,1,0)) * 0.7;
+        col = mix(sandLit, col, smoothstep(0.0, 1.1, depth));
+        float fn = fbm(vWorld.xz*0.42 + vec2(0.0, -uTime*0.35));
+        float shoreF = smoothstep(0.32, 0.0, depth);
+        float lace = vnoise(vWorld.xz*1.6 + vec2(uTime*0.2, -uTime*0.5));
+        float foam = smoothstep(0.35, 0.85, (vFoam + shoreF) * (0.25 + fn*0.8 + lace*0.35));
+        foam += smoothstep(1.3, 2.3, vCrest) * smoothstep(0.5, 0.8, fn) * 0.5;
+        vec3 foamCol = vec3(0.95,0.97,1.0) * lightAt(normalize(vec3(0.0,1.0,0.3)));
+        col = mix(col, foamCol, clamp(foam, 0.0, 1.0) * 0.93);
+        col = fogMix(col, vWorld);
+        gl_FragColor = vec4(col, 1.0);
+      }`
+  })
+);
+ocean.frustumCulled = false;
+scene.add(ocean);
+
+/* =====================================================================
+   Land: svartur sandur, grasbrekka og lúpínubreiður í fjarska
+   ===================================================================== */
+const terrainGeo = new THREE.PlaneGeometry(1000, 280, Math.round(400 * Q), Math.round(220 * Q));
+terrainGeo.rotateX(-Math.PI / 2);
+terrainGeo.translate(0, 0, 105);
+{
+  const p = terrainGeo.attributes.position;
+  for (let i = 0; i < p.count; i++) p.setY(i, terrainH(p.getX(i), p.getZ(i)));
+  terrainGeo.computeVertexNormals();
+}
+const terrain = new THREE.Mesh(terrainGeo, new THREE.ShaderMaterial({
+  uniforms: U,
+  vertexShader: `varying vec3 vWorld; varying vec3 vN;
+    void main(){ vN = normal; vWorld = position; gl_Position = projectionMatrix*viewMatrix*vec4(position,1.0); }`,
+  fragmentShader: GLSL_COMMON + /* glsl */`
+    uniform vec3 uSand;
+    varying vec3 vWorld; varying vec3 vN;
+    void main(){
+      float h = vWorld.y;
+      float n = fbm(vWorld.xz*0.12); float n2 = vnoise(vWorld.xz*1.4);
+      vec3 sand = uSand*(0.85 + 0.3*n2);
+      vec3 grass = mix(vec3(0.075,0.2,0.045), vec3(0.22,0.36,0.08), n);
+      float lup = smoothstep(0.6, 0.7, fbm(vWorld.xz*0.025 + 3.0)) * smoothstep(2.5, 5.0, h);
+      grass = mix(grass, vec3(0.2,0.12,0.48)*(0.8+0.4*n2), lup*0.85);
+      float g = smoothstep(0.5, 1.6, h + (n-0.5)*1.2);
+      vec3 col = mix(sand, grass, g);
+      col = mix(uSand*0.5, col, smoothstep(-0.2, 0.5, h));
+      col *= lightAt(normalize(vN));
+      gl_FragColor = vec4(fogMix(col, vWorld), 1.0);
+    }`
+}));
+scene.add(terrain);
+
+/* =====================================================================
+   Gras
+   ===================================================================== */
+{
+  const COUNT = Math.round(110000 * Q);
+  const g = new THREE.InstancedBufferGeometry();
+  const shape = [-0.5,0, 0.5,0, -0.36,0.4, 0.36,0.4, -0.17,0.75, 0.17,0.75, 0,1];
+  const pos = []; for (let i = 0; i < shape.length; i += 2) pos.push(shape[i], shape[i + 1], 0);
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex([0,1,2, 2,1,3, 2,3,4, 4,3,5, 4,5,6]);
+  const off = new Float32Array(COUNT * 4), par = new Float32Array(COUNT * 4);
+  let n = 0;
+  while (n < COUNT) {
+    const x = rand(-90, 90), z = 14 + Math.pow(Math.random(), 1.3) * 110;
+    const h = terrainH(x, z);
+    if (h < 0.9 + Math.random() * 0.6) continue;
+    off.set([x, h - 0.05, z, rand(0, Math.PI)], n * 4);
+    par.set([rand(0.35, 0.9), rand(0.06, 0.11), rand(0, 6.28), Math.random()], n * 4);
+    n++;
+  }
+  g.setAttribute('iOff', new THREE.InstancedBufferAttribute(off, 4));
+  g.setAttribute('iPar', new THREE.InstancedBufferAttribute(par, 4));
+  g.instanceCount = COUNT;
+  const grass = new THREE.Mesh(g, new THREE.ShaderMaterial({
+    uniforms: U, side: THREE.DoubleSide,
+    vertexShader: GLSL_COMMON + /* glsl */`
+      attribute vec4 iOff; attribute vec4 iPar;
+      varying float vY; varying float vHue; varying vec3 vWorld;
+      void main(){
+        vec3 p = position; float y = p.y;
+        p.x *= iPar.y; p.y *= iPar.x;
+        float c = cos(iOff.w), s = sin(iOff.w);
+        p = vec3(p.x*c, p.y, p.x*s);
+        float gust = vnoise(iOff.xz*0.04 - vec2(uTime*0.35, 0.0));
+        float wind = (sin(uTime*1.4 + iOff.x*0.15 + iOff.z*0.1)*0.35 + sin(uTime*2.9 + iPar.z)*0.15 + gust*0.8) * uWind;
+        p.x += wind*0.35*y*y*iPar.x; p.z -= wind*0.18*y*y*iPar.x;
+        vec3 wp = iOff.xyz + p;
+        vY = y; vHue = iPar.w; vWorld = wp;
+        gl_Position = projectionMatrix*viewMatrix*vec4(wp,1.0);
+      }`,
+    fragmentShader: GLSL_COMMON + /* glsl */`
+      varying float vY; varying float vHue; varying vec3 vWorld;
+      void main(){
+        vec3 base = vec3(0.04,0.12,0.03);
+        vec3 tip = mix(vec3(0.3,0.5,0.1), vec3(0.55,0.55,0.18), vHue*vHue);
+        vec3 col = mix(base, tip, vY);
+        col *= lightAt(normalize(vec3(0.0, 1.0, 0.25))) + uSunColor*pow(max(dot(normalize(vWorld-cameraPosition), uSunDir),0.0),6.0)*0.6*vY;
+        gl_FragColor = vec4(fogMix(col, vWorld), 1.0);
+      }`
+  }));
+  grass.frustumCulled = false;
+  scene.add(grass);
+}
+
+/* =====================================================================
+   Blóm: lúpína, sóley, baldursbrá, geldingahnappur, gleym-mér-ei, blóðberg
+   ===================================================================== */
+const FLORA = ['#8a6fd8', '#6f5bd6', '#ffd23f', '#fbf7ee', '#ff8fb8', '#7fb8ff', '#d46fd0', '#ffe45c', '#fbf7ee'];
+const flowers = (() => {
+  const INITIAL = Math.round(5200 * Q), CAP = INITIAL + 4000;
+  const pos = [], part = [], uv = [];
+  const push = (v, pt, r) => { pos.push(...v); part.push(pt); uv.push(r); };
+  // stilkur: tveir krossaðir fletir
+  for (const [ax, az] of [[1, 0], [0, 1]]) {
+    const w = 0.022;
+    const a = [-w * ax, 0, -w * az], b = [w * ax, 0, w * az], c = [-w * ax, 1, -w * az], d = [w * ax, 1, w * az];
+    push(a, 0, 0); push(b, 0, 0); push(c, 0, 1); push(c, 0, 1); push(b, 0, 0); push(d, 0, 1);
+  }
+  // krónublöð hallað að áhorfandanum
+  const tilt = new THREE.Matrix4().makeRotationX(0.75);
+  const P = 6;
+  for (let k = 0; k < P; k++) {
+    const ang = (k / P) * Math.PI * 2;
+    const dir = [Math.cos(ang), Math.sin(ang)];
+    const perp = [-dir[1], dir[0]];
+    const L = 0.34, W = 0.11;
+    const pts = [
+      [0, 0], [dir[0] * L * 0.45 + perp[0] * W, dir[1] * L * 0.45 + perp[1] * W],
+      [dir[0] * L, dir[1] * L], [dir[0] * L * 0.45 - perp[0] * W, dir[1] * L * 0.45 - perp[1] * W]
+    ].map(([x, z], i) => new THREE.Vector3(x, 0.04 * (i ? 1 : 0), z).applyMatrix4(tilt).add(new THREE.Vector3(0, 1, 0)));
+    const r = [0, 0.6, 1, 0.6];
+    for (const tri of [[0, 1, 2], [0, 2, 3]]) for (const t of tri) push(pts[t].toArray(), 1, r[t]);
+  }
+  for (let k = 0; k < 6; k++) {
+    const a0 = (k / 6) * Math.PI * 2, a1 = ((k + 1) / 6) * Math.PI * 2, R = 0.075;
+    [[0, 0], [Math.cos(a0) * R, Math.sin(a0) * R], [Math.cos(a1) * R, Math.sin(a1) * R]].forEach(([x, z]) => {
+      const v = new THREE.Vector3(x, 0.05, z).applyMatrix4(tilt).add(new THREE.Vector3(0, 1, 0));
+      push(v.toArray(), 2, 0);
+    });
+  }
+  const g = new THREE.InstancedBufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('aPart', new THREE.Float32BufferAttribute(part, 1));
+  g.setAttribute('aR', new THREE.Float32BufferAttribute(uv, 1));
+  const iOff = new THREE.InstancedBufferAttribute(new Float32Array(CAP * 4), 4);
+  const iCol = new THREE.InstancedBufferAttribute(new Float32Array(CAP * 3), 3);
+  const iPar = new THREE.InstancedBufferAttribute(new Float32Array(CAP * 4), 4);
+  [iOff, iCol, iPar].forEach(a => a.setUsage(THREE.DynamicDrawUsage));
+  g.setAttribute('iOff', iOff); g.setAttribute('iCol', iCol); g.setAttribute('iPar', iPar);
+  g.instanceCount = 0;
+  const mat = new THREE.ShaderMaterial({
+    uniforms: U, side: THREE.DoubleSide,
+    vertexShader: GLSL_COMMON + /* glsl */`
+      attribute float aPart; attribute float aR;
+      attribute vec4 iOff; attribute vec3 iCol; attribute vec4 iPar;
+      varying float vPart; varying float vR; varying vec3 vCol; varying vec3 vWorld;
+      void main(){
+        float grow = smoothstep(iPar.w, iPar.w + 2.2, uTime);
+        float pop = grow + sin(clamp((uTime - iPar.w)/2.2, 0.0, 1.0)*3.14159)*0.18;
+        vec3 p = position;
+        float c = cos(iOff.w), s = sin(iOff.w);
+        p = vec3(p.x*c - p.z*s, p.y, p.x*s + p.z*c);
+        p *= iPar.x * pop;
+        p.y *= iPar.y;
+        float y = position.y;
+        float wind = (sin(uTime*1.3 + iOff.x*0.2 + iPar.z)*0.5 + vnoise(iOff.xz*0.04 - vec2(uTime*0.35,0.0))*0.9) * uWind;
+        p.x += wind*0.12*y*y*iPar.x; p.z -= wind*0.06*y*y*iPar.x;
+        vec3 wp = iOff.xyz + p;
+        vPart = aPart; vR = aR; vCol = iCol; vWorld = wp;
+        gl_Position = projectionMatrix*viewMatrix*vec4(wp,1.0);
+      }`,
+    fragmentShader: GLSL_COMMON + /* glsl */`
+      varying float vPart; varying float vR; varying vec3 vCol; varying vec3 vWorld;
+      void main(){
+        vec3 col;
+        if (vPart < 0.5) col = vec3(0.07,0.2,0.05);
+        else if (vPart < 1.5) col = vCol * (0.7 + 0.45*vR);
+        else col = vec3(1.0, 0.72, 0.12);
+        vec3 lit = col * (lightAt(normalize(vec3(0.0,1.0,0.5))) + 0.08);
+        lit += col * 0.22 * uNight * step(0.5, vPart);
+        gl_FragColor = vec4(fogMix(lit, vWorld), 1.0);
+      }`
+  });
+  const mesh = new THREE.Mesh(g, mat);
+  mesh.frustumCulled = false;
+  scene.add(mesh);
+  const tmp = new THREE.Color();
+  function add(x, z, color, birth, scale = rand(0.28, 0.55)) {
+    const i = g.instanceCount;
+    if (i >= CAP) return false;
+    iOff.setXYZW(i, x, terrainH(x, z) - 0.03, z, rand(-0.7, 0.7));
+    tmp.set(color).offsetHSL(rand(-0.02, 0.02), 0, rand(-0.06, 0.06));
+    iCol.setXYZ(i, tmp.r, tmp.g, tmp.b);
+    iPar.setXYZW(i, scale, rand(0.8, 1.35), rand(0, 6.28), birth);
+    g.instanceCount = i + 1;
+    iOff.needsUpdate = iCol.needsUpdate = iPar.needsUpdate = true;
+    return true;
+  }
+  // breiður af sömu tegund, eins og í raunverulegu engi
+  let placed = 0;
+  while (placed < INITIAL) {
+    const cx = rand(-80, 80), cz = rand(18, 110);
+    if (terrainH(cx, cz) < 1.3) continue;
+    const color = FLORA[(Math.random() * FLORA.length) | 0];
+    const size = (rand(15, 70) * Q) | 0, spread = rand(2, 7);
+    for (let k = 0; k < size && placed < INITIAL; k++) {
+      const x = cx + (Math.random() + Math.random() - 1) * spread, z = cz + (Math.random() + Math.random() - 1) * spread;
+      if (terrainH(x, z) < 1.2) continue;
+      add(x, z, color, -100); placed++;
+    }
+  }
+  return { add };
+})();
+
+/* =====================================================================
+   Flugur: mávar yfir hafinu, fiðrildi yfir enginu, fuglar sem þú sendir
+   ===================================================================== */
+function makeFlyerSystem({ cap, geometry, type }) {
+  const g = new THREE.InstancedBufferGeometry();
+  g.index = geometry.index;
+  g.setAttribute('position', geometry.attributes.position);
+  const iPos = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3).setUsage(THREE.DynamicDrawUsage);
+  const iDir = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3).setUsage(THREE.DynamicDrawUsage);
+  const iPar = new THREE.InstancedBufferAttribute(new Float32Array(cap * 4), 4).setUsage(THREE.DynamicDrawUsage);
+  const iCol = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3).setUsage(THREE.DynamicDrawUsage);
+  g.setAttribute('iPos', iPos); g.setAttribute('iDir', iDir); g.setAttribute('iPar', iPar); g.setAttribute('iCol', iCol);
+  const mesh = new THREE.Mesh(g, new THREE.ShaderMaterial({
+    uniforms: U, side: THREE.DoubleSide, defines: { TYPE: type },
+    vertexShader: GLSL_COMMON + /* glsl */`
+      attribute vec3 iPos; attribute vec3 iDir; attribute vec4 iPar; attribute vec3 iCol;
+      varying vec3 vCol; varying float vW; varying vec3 vWorld;
+      void main(){
+        vec3 p = position; float w = abs(p.x);
+        float t = uTime*iPar.z + iPar.y;
+        #if TYPE == 0
+          float glide = 0.25 + 0.75*smoothstep(0.2, 0.9, sin(uTime*0.35 + iPar.y*3.0));
+          p.y += sin(t) * w * 0.55 * glide;
+        #else
+          float f = sin(t);
+          p.y += (f*0.5+0.5) * w * 1.1;
+          p.x *= 0.45 + 0.55*abs(cos(t*0.5+0.8));
+        #endif
+        p *= iPar.x;
+        vec3 fw = normalize(iDir); vec3 r = normalize(cross(vec3(0.0,1.0,0.0), fw)); vec3 u = cross(fw, r);
+        vec3 wp = iPos + r*p.x + u*p.y + fw*p.z;
+        vCol = iCol; vW = w; vWorld = wp;
+        gl_Position = projectionMatrix*viewMatrix*vec4(wp,1.0);
+      }`,
+    fragmentShader: GLSL_COMMON + /* glsl */`
+      varying vec3 vCol; varying float vW; varying vec3 vWorld;
+      void main(){
+        vec3 col = vCol;
+        #if TYPE == 0
+          col = mix(col, vec3(0.12), smoothstep(0.85, 1.1, vW));
+        #endif
+        col *= lightAt(vec3(0.0,1.0,0.0)) + 0.06;
+        gl_FragColor = vec4(fogMix(col, vWorld), 1.0);
+      }`
+  }));
+  mesh.frustumCulled = false;
+  scene.add(mesh);
+  const items = [];
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Color();
+  return {
+    items,
+    add(item) { if (items.length < cap) items.push(item); return item; },
+    update(t) {
+      for (let i = items.length - 1; i >= 0; i--) if (items[i].dead && items[i].dead(t)) items.splice(i, 1);
+      for (let i = 0; i < items.length; i++) {
+        const it = items[i];
+        it.path(t, a); it.path(t + 0.05, b); b.sub(a);
+        if (b.lengthSq() < 1e-8) b.set(0, 0, -1);
+        iPos.setXYZ(i, a.x, a.y, a.z); iDir.setXYZ(i, b.x, b.y, b.z);
+        iPar.setXYZW(i, it.scale * (it.vis ? it.vis(t) : 1), it.phase, it.flap, 0);
+        c.set(it.color); iCol.setXYZ(i, c.r, c.g, c.b);
+      }
+      g.instanceCount = items.length;
+      iPos.needsUpdate = iDir.needsUpdate = iPar.needsUpdate = iCol.needsUpdate = true;
+    }
+  };
+}
+function wingGeometry(kind) {
+  const g = new THREE.BufferGeometry();
+  const v = kind === 'bird'
+    ? [0, 0, 0.55,  0.12, 0, -0.1,  -0.12, 0, -0.1,  0, 0, -0.5,
+       0.1, 0, 0.12,  0.7, 0.05, 0.02,  1.25, 0, -0.32,  0.1, 0, -0.18,
+       -0.1, 0, 0.12, -0.7, 0.05, 0.02, -1.25, 0, -0.32, -0.1, 0, -0.18]
+    : [0, 0, 0.3,  0.05, 0, 0,  -0.05, 0, 0,  0, 0, -0.35,
+       0.04, 0, 0.12, 0.8, 0, 0.45, 0.9, 0, -0.1, 0.04, 0, -0.08,
+       -0.04, 0, 0.12, -0.8, 0, 0.45, -0.9, 0, -0.1, -0.04, 0, -0.08];
+  g.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
+  g.setIndex([0,1,3, 0,3,2, 4,5,6, 4,6,7, 8,10,9, 8,11,10]);
+  return g;
+}
+const birds = makeFlyerSystem({ cap: 140, geometry: wingGeometry('bird'), type: 0 });
+const butterflies = makeFlyerSystem({ cap: 60, geometry: wingGeometry('butterfly'), type: 1 });
+
+for (let i = 0; i < 46; i++) {
+  const cx = rand(-110, 110), cy = rand(12, 38), cz = rand(-170, 5), r = rand(12, 50);
+  const w = (rand(5, 9) / r) * (Math.random() < 0.5 ? -1 : 1), ph = rand(0, 6.28);
+  birds.add({
+    scale: rand(0.75, 1.05), phase: ph, flap: rand(5, 7), color: '#f4f2ec',
+    path(t, o) { const a = ph + w * t; return o.set(cx + Math.cos(a) * r, cy + Math.sin(a * 1.7 + ph) * 3 + Math.sin(t * 0.13 + ph) * 4, cz + Math.sin(a) * r * 0.7); }
+  });
+}
+const BFLY = ['#ff9a3c', '#ffe45c', '#7ab8ff', '#fbf7ee', '#ff8fb8', '#b894ff'];
+for (let i = 0; i < 34; i++) {
+  const cx = rand(-22, 22), cz = rand(26, 62), ph = rand(0, 6.28), sp = rand(0.6, 1.1);
+  butterflies.add({
+    scale: rand(0.12, 0.18), phase: ph, flap: rand(15, 20), color: BFLY[i % BFLY.length],
+    vis: () => smooth(0.15, 0.5, U.uDay.value),
+    path(t, o) {
+      const x = cx + Math.sin(t * 0.21 * sp + ph) * 7 + Math.sin(t * 1.3 * sp + ph * 2) * 0.8;
+      const z = cz + Math.sin(t * 0.17 * sp + ph * 1.3) * 7 + Math.cos(t * 1.1 * sp) * 0.7;
+      return o.set(x, terrainH(x, z) + 0.9 + Math.sin(t * 2.3 + ph) * 0.35, z);
+    }
+  });
+}
+
+/* =====================================================================
+   Eldflugur og ljós: hlýir punktar sem lifna á nóttunni
+   ===================================================================== */
+const glowTex = (() => {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 128;
+  const x = cv.getContext('2d'); const gr = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+  gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.18, 'rgba(255,255,255,.75)');
+  gr.addColorStop(0.45, 'rgba(255,255,255,.18)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  x.fillStyle = gr; x.fillRect(0, 0, 128, 128);
+  const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; return t;
+})();
+{
+  const N = Math.round(420 * Q), p = new Float32Array(N * 3), s = new Float32Array(N);
+  for (let i = 0; i < N; i++) {
+    const x = rand(-50, 50), z = rand(20, 90);
+    p.set([x, terrainH(x, z) + rand(0.3, 2.4), z], i * 3); s[i] = Math.random();
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(p, 3));
+  g.setAttribute('aSeed', new THREE.BufferAttribute(s, 1));
+  const pts = new THREE.Points(g, new THREE.ShaderMaterial({
+    uniforms: { ...U, uMap: { value: glowTex }, uScale: { value: innerHeight } },
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    vertexShader: GLSL_COMMON + `
+      attribute float aSeed; uniform float uScale; varying float vA;
+      void main(){
+        vec3 p = position + vec3(sin(uTime*0.4+aSeed*40.0)*1.2, sin(uTime*0.7+aSeed*20.0)*0.4, cos(uTime*0.3+aSeed*30.0)*1.2);
+        vec4 mv = modelViewMatrix*vec4(p,1.0);
+        vA = uNight * smoothstep(0.35, 1.0, sin(uTime*(0.8+aSeed)+aSeed*60.0));
+        gl_PointSize = uScale * 0.09 / -mv.z;
+        gl_Position = projectionMatrix*mv;
+      }`,
+    fragmentShader: `uniform sampler2D uMap; varying float vA;
+      void main(){ vec4 t = texture2D(uMap, gl_PointCoord); gl_FragColor = vec4(vec3(1.6,1.5,0.6)*t.a*vA, t.a*vA); }`
+  }));
+  pts.frustumCulled = false;
+  scene.add(pts);
+}
+
+/* =====================================================================
+   Myndavél
+   ===================================================================== */
+const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
+const ground = (x, z, eye) => V3(x, terrainH(x, z) + eye, z);
+const cam = {
+  pos: V3(0, 26, 92), look: V3(0, 6, -80),
+  tPos: V3(0, 26, 92), tLook: V3(0, 6, -80),
+  yaw: 0, pitch: 0, px: 0, py: 0, breath: 0,
+};
+camera.position.copy(cam.pos);
+function setShot(pos, look) { cam.tPos.copy(pos); cam.tLook.copy(look); }
+
+/* =====================================================================
+   Tími dags: litavalmynd sem hafið, himinninn og landið deila
+   ===================================================================== */
+const KEYS = [
+  { e: -1.0, zen: '#010309', hor: '#060d20', sun: '#000000', amb: '#1f2c52', deep: '#010409', shal: '#03141c', cl: '#1a2338', cd: '#060a14' },
+  { e: -0.3, zen: '#02061a', hor: '#0c1a3a', sun: '#000000', amb: '#26335e', deep: '#020812', shal: '#062230', cl: '#28345a', cd: '#0a1022' },
+  { e: -0.1, zen: '#0f1c4a', hor: '#51407a', sun: '#40142e', amb: '#39406e', deep: '#07142c', shal: '#1f3552', cl: '#76629a', cd: '#1c1c3a' },
+  { e: 0.0,  zen: '#2a4a8a', hor: '#ff9460', sun: '#ff6a30', amb: '#6e5870', deep: '#14254a', shal: '#5a4a6a', cl: '#ffae78', cd: '#5e3a5c' },
+  { e: 0.1,  zen: '#3a70bd', hor: '#ffc89c', sun: '#ffc27a', amb: '#8e8ca0', deep: '#0f3454', shal: '#3c7c88', cl: '#fff0dc', cd: '#a88a92' },
+  { e: 0.35, zen: '#2b6ecf', hor: '#aad3f2', sun: '#fff1dc', amb: '#98b0cc', deep: '#073a5c', shal: '#168a95', cl: '#ffffff', cd: '#b2c0d4' },
+  { e: 1.0,  zen: '#1a5cc4', hor: '#9dcaf0', sun: '#ffffff', amb: '#a0b8d4', deep: '#06385a', shal: '#138c98', cl: '#ffffff', cd: '#bcc8da' },
+];
+const PAL = KEYS.map(k => Object.fromEntries(Object.entries(k).map(([key, v]) => [key, key === 'e' ? v : new THREE.Color(v)])));
+function applyPalette(e) {
+  let i = 0; while (i < PAL.length - 2 && e > PAL[i + 1].e) i++;
+  const A = PAL[i], B = PAL[i + 1], t = smooth(A.e, B.e, e);
+  U.uZenith.value.lerpColors(A.zen, B.zen, t);
+  U.uHorizon.value.lerpColors(A.hor, B.hor, t);
+  U.uSunColor.value.lerpColors(A.sun, B.sun, t).multiplyScalar(1.15);
+  U.uAmbient.value.lerpColors(A.amb, B.amb, t);
+  U.uDeep.value.lerpColors(A.deep, B.deep, t);
+  U.uShallow.value.lerpColors(A.shal, B.shal, t);
+  U.uCloudLit.value.lerpColors(A.cl, B.cl, t);
+  U.uCloudDark.value.lerpColors(A.cd, B.cd, t);
+}
+const PHASES = [[0.04, 'Dögun'], [0.2, 'Morgunn'], [0.3, 'Hádegi'], [0.46, 'Síðdegi'], [0.54, 'Sólsetur'], [0.7, 'Kvöld'], [0.8, 'Lágnætti'], [0.96, 'Nótt'], [1.01, 'Dögun']];
+const clock = { sky: 0.975, scale: 1, target: 1, boostUntil: 0, cloud: 0 };
+const dialSun = document.getElementById('dial-sun'), dialMoon = document.getElementById('dial-moon'), dialLabel = document.getElementById('dial-label');
+function updateSky(dt, t) {
+  if (clock.boostUntil && t > clock.boostUntil) { clock.target = 1; clock.boostUntil = 0; }
+  clock.scale += (clock.target - clock.scale) * (1 - Math.exp(-dt * 2.5));
+  clock.sky = (clock.sky + dt * clock.scale / DAY_SECONDS) % 1;
+  clock.cloud += dt * clock.scale;
+  const th = clock.sky * Math.PI * 2;
+  U.uSunDir.value.set(-Math.cos(th) * 0.9, Math.sin(th) * 0.75 + 0.02, -0.55).normalize();
+  U.uMoonDir.value.set(Math.cos(th) * 0.9, -Math.sin(th) * 0.7, -0.6).normalize();
+  const e = U.uSunDir.value.y;
+  applyPalette(e);
+  U.uDay.value = smooth(-0.1, 0.25, e);
+  U.uNight.value = smooth(0.02, -0.25, e);
+  U.uCloudTime.value = clock.cloud;
+  const r = 11;
+  dialSun.setAttribute('cx', 15 - Math.cos(th) * r); dialSun.setAttribute('cy', 15 - Math.sin(th) * r);
+  dialMoon.setAttribute('cx', 15 + Math.cos(th) * r); dialMoon.setAttribute('cy', 15 + Math.sin(th) * r);
+  const label = PHASES.find(p => clock.sky < p[0])[1];
+  if (dialLabel.textContent !== label) dialLabel.textContent = label;
+}
+
+/* =====================================================================
+   Hljóðheimur: allt búið til í rauntíma með Web Audio, engar skrár
+   ===================================================================== */
+const sound = {
+  ctx: null, muted: false, focusUntil: 0,
+  init() {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC || this.ctx) return;
+    const ctx = this.ctx = new AC();
+    const master = this.master = ctx.createGain(); master.gain.value = 0;
+    const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 3;
+    master.connect(comp).connect(ctx.destination);
+    master.gain.linearRampToValueAtTime(0.9, ctx.currentTime + 5);
+    // endurómur
+    const len = ctx.sampleRate * 2.6, ir = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3); }
+    const verb = ctx.createConvolver(); verb.buffer = ir;
+    this.verb = ctx.createGain(); this.verb.gain.value = 0.5; this.verb.connect(verb).connect(master);
+    const bus = () => { const g = ctx.createGain(); g.connect(master); return g; };
+    this.bus = { sea: bus(), birds: bus(), wind: bus(), night: bus(), pad: bus(), fx: bus() };
+    this.bus.birds.gain.value = 0; this.bus.night.gain.value = 0;
+    // suð: bleikt og brúnt
+    const noise = (brown) => {
+      const n = ctx.sampleRate * 6, buf = ctx.createBuffer(2, n, ctx.sampleRate);
+      for (let ch = 0; ch < 2; ch++) {
+        const d = buf.getChannelData(ch); let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, last = 0;
+        for (let i = 0; i < n; i++) {
+          const w = Math.random() * 2 - 1;
+          if (brown) { last = (last + 0.02 * w) / 1.02; d[i] = last * 3.5; }
+          else { b0 = 0.99886 * b0 + w * 0.0555179; b1 = 0.99332 * b1 + w * 0.0750759; b2 = 0.969 * b2 + w * 0.153852;
+                 b3 = 0.8665 * b3 + w * 0.3104856; b4 = 0.55 * b4 + w * 0.5329522; b5 = -0.7616 * b5 - w * 0.016898;
+                 d[i] = (b0 + b1 + b2 + b3 + b4 + b5 + w * 0.5362) * 0.11; }
+        }
+      }
+      return buf;
+    };
+    const pink = noise(false), brown = noise(true);
+    const loop = (buf) => { const s = ctx.createBufferSource(); s.buffer = buf; s.loop = true; s.loopStart = Math.random(); s.start(0, Math.random() * 5); return s; };
+    // hafið: djúpt brim
+    this.oceanLP = ctx.createBiquadFilter(); this.oceanLP.type = 'lowpass'; this.oceanLP.frequency.value = 420; this.oceanLP.Q.value = 0.4;
+    this.oceanGain = ctx.createGain(); this.oceanGain.gain.value = 0.22;
+    loop(brown).connect(this.oceanLP).connect(this.oceanGain).connect(this.bus.sea);
+    this.oceanGain.connect(this.verb);
+    // öldubrot: hvítt suð sem skellur og dregur sig til baka
+    this.surfHP = ctx.createBiquadFilter(); this.surfHP.type = 'highpass'; this.surfHP.frequency.value = 700;
+    this.surfGain = ctx.createGain(); this.surfGain.gain.value = 0.0001;
+    loop(pink).connect(this.surfHP).connect(this.surfGain).connect(this.bus.sea);
+    this.surfGain.connect(this.verb);
+    // vindurinn
+    this.windBP = ctx.createBiquadFilter(); this.windBP.type = 'bandpass'; this.windBP.frequency.value = 480; this.windBP.Q.value = 0.7;
+    this.windGain = ctx.createGain(); this.windGain.gain.value = 0.07;
+    loop(pink).connect(this.windBP).connect(this.windGain).connect(this.bus.wind);
+    // mjúkur hljómur sem fylgir deginum
+    const padLP = ctx.createBiquadFilter(); padLP.type = 'lowpass'; padLP.frequency.value = 900;
+    this.padGain = ctx.createGain(); this.padGain.gain.value = 0.0;
+    this.padGain.gain.linearRampToValueAtTime(0.05, ctx.currentTime + 12);
+    padLP.connect(this.padGain).connect(this.bus.pad); this.padGain.connect(this.verb);
+    this.pad = [0, 1, 2, 3].map(i => { const o = ctx.createOscillator(); o.type = i % 2 ? 'sine' : 'triangle'; o.detune.value = rand(-6, 6);
+      const g = ctx.createGain(); g.gain.value = 0.25; o.connect(g).connect(padLP); o.start(); return o; });
+    this.nextWave = null; this.nextBird = 0; this.nextGull = 0; this.nextCricket = 0; this.nextWind = 0; this.chord = -1;
+  },
+  resume() { if (this.ctx && this.ctx.state !== 'running') this.ctx.resume(); },
+  setMuted(m) { this.muted = m; if (this.ctx) this.master.gain.setTargetAtTime(m ? 0 : 0.9, this.ctx.currentTime, 0.3); },
+  scheduleWave(t0, amp) {
+    const P = WAVE_PERIOD, tc = t0 + CRASH_AT * P, g = this.oceanGain.gain, f = this.oceanLP.frequency;
+    g.linearRampToValueAtTime(0.2, t0 + 0.25 * P); f.linearRampToValueAtTime(380, t0 + 0.25 * P);
+    g.linearRampToValueAtTime(0.2 + 0.2 * amp, tc - 0.2); f.linearRampToValueAtTime(900, tc - 0.2);
+    g.linearRampToValueAtTime(0.55 * amp, tc + 0.12); f.linearRampToValueAtTime(1700, tc + 0.12);
+    g.linearRampToValueAtTime(0.2, t0 + 1.2 * P); f.linearRampToValueAtTime(400, t0 + 1.2 * P);
+    const s = this.surfGain.gain, h = this.surfHP.frequency;
+    s.setValueAtTime(0.0001, tc - 0.08); s.exponentialRampToValueAtTime(0.32 * amp, tc + 0.1);
+    s.exponentialRampToValueAtTime(0.09 * amp, tc + 1.6); s.exponentialRampToValueAtTime(0.0001, tc + 4.2);
+    h.setValueAtTime(500, tc - 0.08); h.exponentialRampToValueAtTime(2600, tc + 3.8);
+  },
+  voice(t, pan, dest, wet = 0.4) {
+    const p = this.ctx.createStereoPanner(); p.pan.value = pan;
+    const g = this.ctx.createGain(); g.gain.value = 0; g.connect(p); p.connect(dest);
+    const w = this.ctx.createGain(); w.gain.value = wet; p.connect(w).connect(this.verb);
+    return g;
+  },
+  songbird(t, pan) {
+    const ctx = this.ctx, o = ctx.createOscillator(), g = this.voice(t, pan, this.bus.birds, 0.35);
+    o.connect(g); const notes = 3 + ((Math.random() * 5) | 0), base = rand(2600, 4600); let tt = t;
+    for (let k = 0; k < notes; k++) {
+      const d = rand(0.04, 0.09), f0 = base * rand(0.85, 1.25), up = Math.random() < 0.6;
+      o.frequency.setValueAtTime(f0, tt); o.frequency.exponentialRampToValueAtTime(f0 * (up ? 1.35 : 0.7), tt + d);
+      g.gain.setValueAtTime(0, tt); g.gain.linearRampToValueAtTime(rand(0.04, 0.08), tt + 0.01); g.gain.exponentialRampToValueAtTime(0.0005, tt + d);
+      tt += d + rand(0.02, 0.07);
+    }
+    o.start(t); o.stop(tt + 0.1);
+  },
+  gull(t, pan) {
+    const ctx = this.ctx, o = ctx.createOscillator(); o.type = 'sawtooth';
+    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1500; bp.Q.value = 2.5;
+    const g = this.voice(t, pan, this.bus.birds, 0.8); o.connect(bp).connect(g);
+    const calls = 2 + ((Math.random() * 3) | 0); let tt = t;
+    for (let k = 0; k < calls; k++) {
+      const f = rand(1050, 1300);
+      o.frequency.setValueAtTime(f, tt); o.frequency.linearRampToValueAtTime(f * 1.3, tt + 0.06); o.frequency.exponentialRampToValueAtTime(f * 0.75, tt + 0.34);
+      g.gain.setValueAtTime(0, tt); g.gain.linearRampToValueAtTime(0.028, tt + 0.04); g.gain.exponentialRampToValueAtTime(0.0005, tt + 0.36);
+      tt += rand(0.38, 0.5);
+    }
+    o.start(t); o.stop(tt + 0.1);
+  },
+  cricket(t, pan) {
+    const ctx = this.ctx, o = ctx.createOscillator(); o.frequency.value = rand(4200, 4700);
+    const g = this.voice(t, pan, this.bus.night, 0.3); o.connect(g); let tt = t;
+    for (let r = 0; r < 3; r++) { for (let k = 0; k < 3; k++) { g.gain.setValueAtTime(0.018, tt); g.gain.setValueAtTime(0, tt + 0.016); tt += 0.032; } tt += rand(0.25, 0.4); }
+    o.start(t); o.stop(tt);
+  },
+  chime(i = (Math.random() * 6) | 0, vol = 0.09) {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t = ctx.currentTime + 0.01;
+    const f = [587.33, 659.25, 739.99, 880, 987.77, 1174.66, 1318.5][i % 7];
+    const g = this.voice(t, rand(-0.5, 0.5), this.bus.fx, 0.7);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0003, t + 2.8);
+    [[1, 1], [2.01, 0.35], [3.2, 0.12]].forEach(([m, a]) => { const o = ctx.createOscillator(); o.frequency.value = f * m;
+      const og = ctx.createGain(); og.gain.value = a; o.connect(og).connect(g); o.start(t); o.stop(t + 3); });
+  },
+  focus(layer) {
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime; this.focusLayer = layer; this.focusUntil = now + 9;
+    if (layer === 'birds') for (let k = 0; k < 6; k++) this.songbird(now + k * rand(0.5, 1.1), rand(-0.8, 0.8));
+    if (layer === 'birds') this.gull(now + 1.5, rand(-0.6, 0.6));
+  },
+  update(tw, dayF, nightF) {
+    const ctx = this.ctx; if (!ctx || ctx.state !== 'running') return;
+    const now = ctx.currentTime, offset = now - tw, P = WAVE_PERIOD;
+    if (this.nextWave === null) this.nextWave = Math.floor(tw / P) + 1;
+    while (this.nextWave * P < tw + 2) { const n = this.nextWave++; this.scheduleWave(n * P + offset, 0.7 + 0.6 * hash1(n)); }
+    // fuglar á daginn, engisprettur á nóttunni
+    if (now > this.nextBird && dayF > 0.2) { this.songbird(now + 0.05, rand(-0.9, 0.9)); this.nextBird = now + rand(0.6, 3.5) / dayF; }
+    if (now > this.nextGull && dayF > 0.3) { this.gull(now + 0.05, rand(-0.7, 0.7)); this.nextGull = now + rand(5, 14); }
+    if (now > this.nextCricket && nightF > 0.2) { this.cricket(now + 0.05, rand(-0.9, 0.9)); this.nextCricket = now + rand(0.3, 1.4) / nightF; }
+    if (now > this.nextWind) { this.windGain.gain.setTargetAtTime(rand(0.04, 0.11) * U.uWind.value, now, 1.8);
+      this.windBP.frequency.setTargetAtTime(rand(320, 750), now, 2.2); this.nextWind = now + rand(2, 5); }
+    // athygli: eitt hljóð í forgrunni í smástund
+    const f = now < this.focusUntil ? this.focusLayer : null;
+    const lvl = (name, base) => f ? (f === name ? base * 2.2 : base * 0.3) : base;
+    this.bus.sea.gain.setTargetAtTime(lvl('sea', 1), now, 0.6);
+    this.bus.birds.gain.setTargetAtTime(lvl('birds', f === 'birds' ? 0.8 : dayF), now, 0.6);
+    this.bus.wind.gain.setTargetAtTime(lvl('wind', 1), now, 0.6);
+    this.bus.night.gain.setTargetAtTime(f ? 0.2 * nightF : nightF, now, 0.8);
+    U.uWind.value += ((f === 'wind' ? 2.4 : 1) - U.uWind.value) * 0.02;
+    // hljómur eftir tíma dags
+    const chords = [[146.83, 220, 293.66, 369.99], [196, 246.94, 293.66, 369.99], [164.81, 246.94, 329.63, 392], [110, 164.81, 261.63, 329.63]];
+    const ci = clock.sky < 0.2 ? 0 : clock.sky < 0.45 ? 1 : clock.sky < 0.6 ? 2 : clock.sky < 0.95 ? 3 : 0;
+    if (ci !== this.chord) { this.chord = ci; this.pad.forEach((o, i) => o.frequency.setTargetAtTime(chords[ci][i], now, 2.5)); }
+  }
+};
+
+/* =====================================================================
+   Ljósker (þakklæti), stjörnur (óskir) og merkimiðar
+   ===================================================================== */
+const labelsEl = document.getElementById('labels');
+const tagged = [];
+function addTag(text, getPos, cls = '') {
+  const el = document.createElement('div'); el.className = 'tag ' + cls; el.textContent = text;
+  labelsEl.appendChild(el); const t = { el, getPos, born: performance.now() / 1000 }; tagged.push(t); return t;
+}
+const proj = new THREE.Vector3();
+function updateTags() {
+  const w = innerWidth, h = innerHeight;
+  for (const t of tagged) {
+    const p = t.getPos(); if (!p) { t.el.style.opacity = 0; continue; }
+    proj.copy(p).project(camera);
+    if (proj.z > 1 || Math.abs(proj.x) > 1.2 || Math.abs(proj.y) > 1.2) { t.el.style.opacity = 0; continue; }
+    const x = (proj.x * 0.5 + 0.5) * w, y = (-proj.y * 0.5 + 0.5) * h;
+    t.el.style.transform = `translate(${x}px, ${y}px) translate(-50%, -150%)`;
+    t.el.style.opacity = t.opacity ? t.opacity() : 0.85;
+  }
+}
+const lanterns = [];
+function addLantern(text, instant = false) {
+  const now = U.uTime.value;
+  const start = instant ? null : camera.position.clone().add(new THREE.Vector3(0, -1.5, -6).applyQuaternion(camera.quaternion));
+  const target = V3(rand(-45, 45), rand(16, 36), rand(-130, -30));
+  const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: new THREE.Color(2.6, 1.7, 0.8), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, fog: false }));
+  glow.scale.setScalar(2.4); scene.add(glow);
+  const L = { text, glow, start, target, born: now, seed: Math.random() * 10, pos: new THREE.Vector3() };
+  L.update = (t) => {
+    const age = t - L.born, k = start ? smooth(0, 38, age) : 1;
+    if (start) L.pos.lerpVectors(start, target, 1 - Math.pow(1 - k, 2));
+    else L.pos.copy(target);
+    L.pos.x += Math.sin(t * 0.3 + L.seed) * 0.8; L.pos.y += Math.sin(t * 0.5 + L.seed * 2) * 0.5 + (start ? Math.sin(k * Math.PI) * 6 : 0);
+    glow.position.copy(L.pos);
+    glow.material.opacity = 0.75 + 0.25 * Math.sin(t * 2.1 + L.seed);
+  };
+  L.update(now);
+  lanterns.push(L);
+  addTag(text, () => L.pos, '').opacity = () => 0.9 - 0.45 * smooth(20, 60, U.uTime.value - L.born);
+  return L;
+}
+const wishes = [];
+function addWish(text, instant = false) {
+  const now = U.uTime.value;
+  const az = rand(-0.9, 0.9), el = rand(0.25, 0.7);
+  const target = V3(Math.sin(az) * Math.cos(el), Math.sin(el), -Math.cos(az) * Math.cos(el)).multiplyScalar(1400);
+  const star = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: new THREE.Color(3, 3, 3.4), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, fog: false }));
+  scene.add(star);
+  const start = instant ? null : camera.position.clone().add(new THREE.Vector3(0, -0.5, -4).applyQuaternion(camera.quaternion));
+  const W = { star, born: now, seed: Math.random() * 10, pos: new THREE.Vector3() };
+  W.update = (t) => {
+    const k = start ? smooth(0, 6, t - W.born) : 1;
+    if (start) { W.pos.lerpVectors(start, target.clone().add(camera.position), Math.pow(k, 2.2)); }
+    else W.pos.copy(target).add(camera.position);
+    star.position.copy(W.pos);
+    const d = W.pos.distanceTo(camera.position);
+    star.scale.setScalar(d * (0.012 + 0.004 * Math.sin(t * 3 + W.seed)) * (start ? 1 + (1 - k) * 2 : 1));
+    star.material.opacity = 0.45 + 0.55 * U.uNight.value;
+  };
+  W.update(now);
+  wishes.push(W);
+  addTag(text, () => W.pos, 'star').opacity = () => (0.35 + 0.5 * U.uNight.value) * (start ? smooth(4, 7, U.uTime.value - W.born) : 1);
+}
+function releaseBird(name) {
+  const t0 = U.uTime.value;
+  const start = camera.position.clone().add(new THREE.Vector3(0.6, -0.8, -3).applyQuaternion(camera.quaternion));
+  const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion); dir.y = 0; dir.normalize();
+  const bird = birds.add({
+    scale: 1.15, phase: 0, flap: 7.5, color: '#ffffff',
+    path(t, o) { const a = Math.max(0, t - t0); return o.copy(start).addScaledVector(dir, a * 10 + a * a * 0.05).add(V3(Math.sin(a * 0.7) * 3, a * 1.1 + Math.sin(a * 1.3) * 0.8, 0)); },
+    dead: t => t - t0 > 55
+  });
+  if (name) {
+    const p = new THREE.Vector3();
+    const tag = addTag(name, () => (U.uTime.value - t0 < 22 ? bird.path(U.uTime.value, p) : null));
+    tag.opacity = () => 1 - smooth(14, 21, U.uTime.value - t0);
+  }
+  sound.chime(3, 0.08); setTimeout(() => sound.chime(5, 0.06), 260);
+}
+
+/* =====================================================================
+   Snerting: sá blómum með því að snerta engið, draga til að líta í kringum sig
+   ===================================================================== */
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+let heartColor = store.get('color', null);
+let planted = 0;
+const onPlant = [];
+function plantAt(clientX, clientY) {
+  ndc.set((clientX / innerWidth) * 2 - 1, -(clientY / innerHeight) * 2 + 1);
+  ray.setFromCamera(ndc, camera);
+  const hit = ray.intersectObject(terrain)[0];
+  if (!hit || hit.point.y < 0.6) return;
+  const n = 5 + ((Math.random() * 6) | 0), t = U.uTime.value;
+  const base = heartColor || FLORA[(Math.random() * FLORA.length) | 0];
+  const spread = clamp(hit.distance * 0.03, 0.4, 2.5);
+  for (let k = 0; k < n; k++) {
+    const a = Math.random() * 6.28, r = Math.sqrt(Math.random()) * spread;
+    const col = Math.random() < 0.75 ? base : FLORA[(Math.random() * FLORA.length) | 0];
+    if (flowers.add(hit.point.x + Math.cos(a) * r, hit.point.z + Math.sin(a) * r, col, t + k * 0.12, rand(0.35, 0.7))) planted++;
+  }
+  sound.chime();
+  onPlant.forEach(f => f(planted));
+}
+let down = null;
+canvas.addEventListener('pointerdown', e => { down = { x: e.clientX, y: e.clientY, yaw: cam.yaw, pitch: cam.pitch, moved: false }; canvas.setPointerCapture(e.pointerId); });
+canvas.addEventListener('pointermove', e => {
+  cam.px = (e.clientX / innerWidth - 0.5); cam.py = (e.clientY / innerHeight - 0.5);
+  if (!down) return;
+  const dx = e.clientX - down.x, dy = e.clientY - down.y;
+  if (Math.hypot(dx, dy) > 7) down.moved = true;
+  if (down.moved) { cam.yaw = clamp(down.yaw - dx * 0.004, -1.2, 1.2); cam.pitch = clamp(down.pitch - dy * 0.003, -0.5, 0.9); }
+});
+canvas.addEventListener('pointerup', e => { if (down && !down.moved && document.body.classList.contains('started')) plantAt(e.clientX, e.clientY); down = null; });
+canvas.addEventListener('pointercancel', () => { down = null; });
+
+/* =====================================================================
+   Ferðalagið: tíu kaflar
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+const el = (tag, attrs = {}, ...kids) => { const n = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) { if (k.startsWith('on')) n.addEventListener(k.slice(2), v); else if (k === 'style') n.style.cssText = v; else n.setAttribute(k, v); } n.append(...kids); return n; };
+function inputForm(id, placeholder, label, onSubmit) {
+  const input = el('input', { id, type: 'text', maxlength: '60', placeholder, autocomplete: 'off', 'aria-label': placeholder });
+  const form = el('form', { class: 'form', onsubmit: e => { e.preventDefault(); const v = input.value.trim(); if (!v) { input.focus(); return; } onSubmit(v); input.value = ''; } },
+    input, el('button', { class: 'chip solid', type: 'submit' }, label));
+  return form;
+}
+const HEARTS = [['Gleði', '#ffd23f'], ['Ró', '#34d1c4'], ['Ást', '#ff7fa8'], ['Undrun', '#a98bff'], ['Von', '#5dffb0'], ['Kraftur', '#ff8a4c']];
+let breathTimer = null, crashCount = 0, onCrash = null;
+
+const CHAPTERS = [
+  {
+    name: 'Nærvera', title: 'Hér og nú',
+    lines: ['Hvar ertu núna? Ekki í huganum, heldur hér.', 'Öldurnar komu löngu á undan okkur og halda áfram að koma löngu eftir okkur. Þær biðja ekki um neitt.', 'Veldu eitt hljóð og fylgdu því alla leið.'],
+    sci: ['Í rannsókn Killingsworth og Gilbert var fólk spurt um líðan sína á handahófskenndum augnablikum yfir daginn. Hugurinn reikaði í nær helmingi tímans og fólk var að jafnaði óhamingjusamara þegar hann reikaði. Það skipti meira máli hvar hugurinn var en hvað fólk var að gera.', 'Killingsworth & Gilbert, Science (2010)'],
+    shot: () => [ground(0, 50, 1.8), V3(0, 4, -110)],
+    build(box) {
+      box.append(el('div', { class: 'row' }, ...[['Hafið', 'sea'], ['Fuglarnir', 'birds'], ['Vindurinn', 'wind']].map(([label, layer]) =>
+        el('button', { class: 'chip', onclick: e => { box.querySelectorAll('.chip').forEach(c => c.classList.remove('on')); e.currentTarget.classList.add('on'); sound.focus(layer);
+          if (layer === 'sea') setShot(ground(2, 30, 1.5), V3(0, 0.5, -40)); else if (layer === 'birds') setShot(ground(0, 50, 1.8), V3(0, 30, -90)); else setShot(ground(-4, 44, 1.2), V3(8, 2, 10)); } }, label))));
+    }
+  },
+  {
+    name: 'Andardráttur', title: 'Andaðu með hafinu',
+    lines: ['Hafið andar í löngum, rólegum takti.', 'Leyfðu andardrættinum að finna sama takt. Fjórar sekúndur inn, sex sekúndur út. Sex sinnum.'],
+    sci: ['Hægur andardráttur, um sex andardrættir á mínútu, tengist aukinni virkni flökkutaugarinnar, meiri ró og betri einbeitingu. Í slembiraðaðri rannsókn Balban og félaga jók fimm mínútna daglegur andardráttur með langri útöndun jákvæðar tilfinningar meira en núvitundarhugleiðsla gerði.', 'Zaccaro o.fl., Frontiers in Human Neuroscience (2018) · Balban o.fl., Cell Reports Medicine (2023)'],
+    shot: () => [ground(-6, 40, 1.3), V3(10, 2.5, -80)],
+    build(box) {
+      const orb = el('div', { class: 'breath-orb' }, el('i'));
+      const word = el('div', { class: 'breath-word' }, 'Tilbúin að byrja?');
+      const count = el('div', { class: 'meta' }, '4 inn · 6 út · 6 umferðir');
+      const btn = el('button', { class: 'chip solid', onclick: () => {
+        btn.hidden = true; let round = 0; const ball = orb.firstChild;
+        const inhale = () => {
+          if (round >= 6) { word.textContent = 'Vel gert. Finndu róna.'; count.textContent = 'Ein mínúta af nærveru'; cam.breath = 0; btn.hidden = false; btn.textContent = 'Aftur'; sound.chime(0, 0.06); return; }
+          round++; count.textContent = `Umferð ${round} af 6`; word.textContent = 'Anda inn…';
+          ball.style.transitionDuration = '4s'; ball.style.transform = 'scale(1)'; cam.breath = 1; sound.chime(2, 0.035);
+          breathTimer = setTimeout(() => { word.textContent = 'Anda út…'; ball.style.transitionDuration = '6s'; ball.style.transform = 'scale(.35)'; cam.breath = 0; breathTimer = setTimeout(inhale, 6000); }, 4000);
+        };
+        inhale();
+      } }, 'Byrja');
+      box.append(el('div', { class: 'breath' }, orb, el('div', { style: 'display:grid;gap:6px;justify-items:start' }, word, count, btn)));
+    },
+    leave() { clearTimeout(breathTimer); cam.breath = 0; }
+  },
+  {
+    name: 'Blár hugur', title: 'Blái hugurinn',
+    lines: ['Horfðu á öldurnar koma að landi. Teldu sjö.', 'Ekkert annað þarf að gerast á meðan.'],
+    sci: ['Í rannsókn á nær 20.000 manns sögðu þau sem vörðu minnst 120 mínútum á viku í náttúrunni oftar frá góðri heilsu og vellíðan en þau sem gerðu það ekki. Vatn og haf virðast hafa sérstaklega róandi áhrif, það sem sjávarlíffræðingurinn Wallace J. Nichols kallar bláan huga.', 'White o.fl., Scientific Reports (2019) · Nichols, Blue Mind (2014)'],
+    shot: () => [ground(3, 24, 1.6), V3(0, 0.6, -40)],
+    build(box) {
+      crashCount = 0;
+      const m = el('div', { class: 'meta', style: 'font-size:15px' }, 'Öldur: 0 af 7');
+      onCrash = () => { crashCount++; if (crashCount <= 7) { m.textContent = crashCount < 7 ? `Öldur: ${crashCount} af 7` : 'Sjö öldur. Þú varst hér allan tímann.'; if (crashCount === 7) sound.chime(4, 0.06); } };
+      box.append(m);
+    },
+    leave() { onCrash = null; }
+  },
+  {
+    name: 'Litir', title: 'Litir hjartans',
+    lines: ['Hvaða litur býr í þér í dag?', 'Veldu hann. Hann blómstrar í enginu núna og dansar í norðurljósunum þegar nóttin kemur.'],
+    sci: ['Barbara Fredrickson setti fram víkka-og-byggja kenninguna (e. broaden-and-build): jákvæðar tilfinningar víkka athyglina og hugsunina svo við sjáum fleiri möguleika. Með tímanum byggja þær upp varanlega styrkleika eins og seiglu, tengsl og sköpunargáfu.', 'Fredrickson, American Psychologist (2001)'],
+    shot: () => [ground(-10, 46, 2.2), V3(18, 6, -100)],
+    build(box) {
+      box.append(el('div', { class: 'swatches' }, ...HEARTS.map(([name, c], i) => {
+        const b = el('button', { class: 'swatch' + (heartColor === c ? ' on' : ''), style: `--c:${c}`, 'aria-label': name, onclick: () => {
+          box.querySelectorAll('.swatch').forEach(s => s.classList.remove('on')); b.classList.add('on'); setHeart(c);
+          const t = U.uTime.value; const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+          for (let k = 0; k < 60; k++) { const d = rand(5, 28), a = rand(-0.7, 0.7);
+            const x = camera.position.x + (fwd.x * Math.cos(a) - fwd.z * Math.sin(a)) * d, z = camera.position.z + (fwd.z * Math.cos(a) + fwd.x * Math.sin(a)) * d;
+            if (terrainH(x, z) > 1) flowers.add(x, z, c, t + d * 0.08, rand(0.35, 0.6)); }
+          [0, 2, 4].forEach((n, j) => setTimeout(() => sound.chime(n + i % 2, 0.06), j * 140));
+        } }, el('i'), name); return b; })));
+    }
+  },
+  {
+    name: 'Lotning', title: 'Lotning',
+    lines: ['Líttu upp. Himinninn er stærri en allar okkar áhyggjur.', 'Dagur verður að nótt og nótt að degi. Hér á níutíu sekúndum, annars staðar á sólarhring. Eins og alltaf.'],
+    sci: ['Lotning (e. awe) er tilfinningin sem vaknar frammi fyrir einhverju víðáttumiklu. Piff, Keltner og félagar fundu að lotning minnkar sjálfið í eigin augum, það sem þau kalla litla sjálfið, og gerir fólk örlátara og hjálpsamara. Keltner lýsir því hvernig lotning finnst í náttúru, tónlist, list og góðvild annarra.', 'Piff o.fl., JPSP (2015) · Keltner, Awe (2023)'],
+    shot: () => [ground(0, 38, 1.2), V3(0, 70, -80)],
+    build(box) {
+      box.append(el('div', { class: 'row' }, el('button', { class: 'chip solid', onclick: () => { clock.target = 12; clock.boostUntil = U.uTime.value + 8; sound.chime(0, 0.05); } }, 'Láta heilan dag líða'),
+        el('span', { class: 'meta', style: 'align-self:center' }, 'Átta sekúndur. Horfðu bara.')));
+    }
+  },
+  {
+    name: 'Leikur', title: 'Leikur og sköpun',
+    lines: ['Snertu engið. Hver snerting sáir blómum.', 'Það er engin rétt leið, bara þín leið. Leiktu þér eins og enginn sé að horfa.'],
+    sci: ['Mihaly Csikszentmihalyi lýsti flæði (e. flow): þegar við gleymum okkur í verki sem reynir hæfilega á okkur hverfur tímaskynið og sjálfsgagnrýnin þagnar. Geðlæknirinn Stuart Brown safnaði þúsundum leiksagna fólks og telur leik vera líffræðilega þörf, ekki munað.', 'Csikszentmihalyi, Flow (1990) · Brown, Play (2009)'],
+    shot: () => [ground(0, 52, 5.5), ground(0, 30, 0)],
+    build(box) {
+      const m = el('div', { class: 'meta', style: 'font-size:15px' }, planted ? `Blóm sem þú hefur sáð: ${planted}` : 'Snertu grasið fyrir neðan.');
+      const f = n => { m.textContent = `Blóm sem þú hefur sáð: ${n}`; }; onPlant.push(f); this._f = f;
+      box.append(m);
+    },
+    leave() { const i = onPlant.indexOf(this._f); if (i >= 0) onPlant.splice(i, 1); }
+  },
+  {
+    name: 'Þakklæti', title: 'Þakklæti',
+    lines: ['Hvað vekur þakklæti í þér í dag? Stórt eða ofurlítið.', 'Skrifaðu það. Það verður að ljósi sem svífur út yfir hafið.'],
+    sci: ['Í tilraun Emmons og McCullough skrifaði fólk vikulega niður það sem það var þakklátt fyrir. Eftir tíu vikur mat það líf sitt betra, var bjartsýnna og hreyfði sig meira en samanburðarhópar sem skrifuðu um amstur eða hlutlausa atburði.', 'Emmons & McCullough, JPSP (2003)'],
+    shot: () => [ground(0, 48, 2.0), V3(0, 14, -50)],
+    build(box) {
+      const m = el('div', { class: 'meta' }, lanterns.length ? `${lanterns.length} ljós svífa yfir hafinu.` : 'Til dæmis: morgunkaffið, hlátur vinar, hlýjar hendur.');
+      box.append(inputForm('in-thanks', 'Ég er þakklát/ur fyrir…', 'Sleppa ljósinu', v => {
+        addLantern(v); const all = store.get('lanterns', []); all.push(v); store.set('lanterns', all.slice(-40));
+        m.textContent = `${lanterns.length} ${lanterns.length === 1 ? 'ljós svífur' : 'ljós svífa'} yfir hafinu.`; sound.chime(4, 0.08); setTimeout(() => sound.chime(6, 0.05), 300);
+      }), m);
+    }
+  },
+  {
+    name: 'Tengsl', title: 'Tengsl',
+    lines: ['Hugsaðu um einhvern sem þér þykir vænt um.', 'Skrifaðu nafnið og sendu fugl af stað. Sendu viðkomandi svo skilaboð í dag, bara til að segja hæ.'],
+    sci: ['Harvard-rannsóknin á fullorðinsþroska hefur fylgt sama fólkinu frá 1938. Það sem stendur upp úr: hlý og náin sambönd spá betur fyrir um hamingju og heilsu en auður eða frægð. Ánægja í samböndum um fimmtugt spáði betur fyrir um heilsu við áttrætt en kólesterólgildi. Samantekt á 148 rannsóknum sýndi að sterk félagsleg tengsl auka lífslíkur um nær helming.', 'Waldinger & Schulz, The Good Life (2023) · Holt-Lunstad o.fl., PLoS Medicine (2010)'],
+    shot: () => [ground(8, 32, 2.0), V3(-20, 12, -150)],
+    build(box) { box.append(inputForm('in-name', 'Nafn þess sem þér þykir vænt um', 'Senda fugl', v => releaseBird(v))); }
+  },
+  {
+    name: 'Að gefa', title: 'Að gefa af sér',
+    lines: ['Við erum að gefa af okkur. Það er allt og sumt.', 'Óskaðu ókunnugri manneskju einhvers góðs. Óskin verður að stjörnu og bíður hennar á himninum.'],
+    sci: ['Dunn, Aknin og Norton gáfu fólki peninga til að eyða samdægurs. Þau sem eyddu þeim í aðra voru hamingjusamari um kvöldið en þau sem eyddu þeim í sjálf sig, óháð upphæðinni. Síðari rannsóknir hafa fundið svipuð áhrif víða um heim, frá Kanada til Úganda.', 'Dunn o.fl., Science (2008) · Aknin o.fl., JPSP (2013)'],
+    shot: () => [ground(0, 55, 1.6), V3(0, 55, -150)],
+    build(box) {
+      box.append(inputForm('in-wish', 'Ég óska þér…', 'Senda óskina', v => {
+        addWish(v); const all = store.get('wishes', []); all.push(v); store.set('wishes', all.slice(-40));
+        [1, 3, 5].forEach((n, j) => setTimeout(() => sound.chime(n, 0.05), j * 180));
+      }));
+    }
+  },
+  {
+    name: 'Tilvist', title: 'Þú ert hér',
+    poem: true,
+    lines: ['Þú ert ekki verkefni sem þarf að klára.', 'Þú ert engi sem blómstrar, haf sem andar, himinn sem skiptir litum.', 'Þú ert hér. Það er nóg.'],
+    sci: ['Martin Seligman lýsir blómstrandi lífi með fimm þáttum, PERMA: jákvæðum tilfinningum, helgun, tengslum, merkingu og árangri. Viktor Frankl skrifaði að merkingu finnum við í því sem við gefum heiminum, í því sem við upplifum og elskum, og í afstöðu okkar til þess sem við fáum ekki breytt.', 'Seligman, Flourish (2011) · Frankl, Man\'s Search for Meaning (1946)'],
+    shot: () => [V3(0, 18, 80), V3(0, 5, -80)],
+    build(box) {
+      box.append(el('div', { class: 'row' },
+        el('button', { class: 'chip solid', onclick: () => setFree(true) }, 'Vera hér'),
+        el('button', { class: 'chip', onclick: () => go(0) }, 'Byrja aftur'),
+        el('button', { class: 'chip', onclick: () => { $('sources').hidden = false; $('btn-close-src').focus(); } }, 'Heimildir')),
+        el('p', { class: 'meta', style: 'margin:0' }, 'Gefið af einlægni. Taktu það sem þú þarft og berðu það áfram.'));
+    }
+  },
+];
+
+let current = -1;
+const dotsEl = $('dots');
+CHAPTERS.forEach((c, i) => dotsEl.append(el('button', { class: 'dot', 'aria-label': `${i + 1}. ${c.name}`, onclick: () => go(i) })));
+function go(i) {
+  i = clamp(i, 0, CHAPTERS.length - 1);
+  if (i === current) return;
+  if (current >= 0 && CHAPTERS[current].leave) CHAPTERS[current].leave();
+  current = i;
+  const c = CHAPTERS[i], panel = $('panel');
+  panel.classList.remove('show');
+  setTimeout(() => {
+    $('k-num').textContent = `${i + 1} / ${CHAPTERS.length}`;
+    $('k-name').textContent = c.name;
+    $('p-title').textContent = c.title;
+    const lines = $('p-lines'); lines.replaceChildren(...c.lines.map((l, k) => el('p', { class: c.poem ? 'poem' : '', style: `animation-delay:${0.25 + k * 0.45}s` }, l)));
+    const box = $('p-interact'); box.replaceChildren(); c.build && c.build(box);
+    $('p-sci-text').textContent = c.sci[0]; $('p-sci-cite').textContent = c.sci[1];
+    $('p-science').open = false;
+    panel.scrollTop = 0;
+    panel.classList.add('show');
+  }, current === i && panel.classList.contains('show') ? 450 : 450);
+  const [p, l] = c.shot(); setShot(p, l);
+  cam.yaw *= 0.2; cam.pitch *= 0.2;
+  [...dotsEl.children].forEach((d, k) => { d.classList.toggle('on', k === i); if (k < i) d.classList.add('seen'); });
+  $('btn-prev').disabled = i === 0; $('btn-next').disabled = i === CHAPTERS.length - 1;
+}
+function setHeart(c) {
+  heartColor = c; store.set('color', c);
+  U.uAurora.value.set(c);
+  document.documentElement.style.setProperty('--accent', c);
+}
+if (heartColor) setHeart(heartColor);
+
+let freeTour = 0;
+function setFree(on) {
+  document.body.classList.toggle('free', on);
+  $('back').hidden = !on;
+  if (on) { freeTour = U.uTime.value; $('back').focus({ preventScroll: true }); }
+  else { const [p, l] = CHAPTERS[current].shot(); setShot(p, l); }
+}
+
+/* ---------- stjórnhnappar ---------- */
+$('btn-enter').addEventListener('click', () => {
+  document.body.classList.add('started');
+  sound.init(); sound.resume();
+  go(0);
+});
+$('btn-next').addEventListener('click', () => go(current + 1));
+$('btn-prev').addEventListener('click', () => go(current - 1));
+$('btn-free').addEventListener('click', () => setFree(!document.body.classList.contains('free')));
+$('back').addEventListener('click', () => setFree(false));
+$('btn-close-src').addEventListener('click', () => { $('sources').hidden = true; });
+$('sources').addEventListener('click', e => { if (e.target.id === 'sources') $('sources').hidden = true; });
+$('btn-sound').addEventListener('click', () => {
+  sound.init(); sound.resume(); sound.setMuted(!sound.muted);
+  $('btn-sound').querySelector('.wave').style.opacity = sound.muted ? 0.15 : 1;
+  $('btn-sound').setAttribute('aria-label', sound.muted ? 'Kveikja á hljóði' : 'Slökkva á hljóði');
+});
+$('btn-full').addEventListener('click', () => {
+  try { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {}); else document.exitFullscreen(); } catch {}
+});
+addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || !document.body.classList.contains('started')) return;
+  if (e.key === 'ArrowRight') go(current + 1);
+  if (e.key === 'ArrowLeft') go(current - 1);
+  if (e.key === 'Escape') { if (!$('sources').hidden) $('sources').hidden = true; else if (document.body.classList.contains('free')) setFree(false); }
+});
+document.addEventListener('visibilitychange', () => {
+  if (!sound.ctx) return;
+  if (document.hidden) sound.ctx.suspend(); else { sound.nextWave = null; sound.resume(); }
+});
+
+/* ---------- vistuð ljós og óskir frá fyrri heimsókn ---------- */
+store.get('lanterns', []).forEach(t => addLantern(t, true));
+store.get('wishes', []).forEach(t => addWish(t, true));
+
+/* =====================================================================
+   Aðallykkjan
+   ===================================================================== */
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight);
+});
+const timer = { last: performance.now(), t: 0 };
+let prevPhase = 0;
+const lookDir = new THREE.Vector3(), right = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0), tmpV = new THREE.Vector3();
+const TOUR = [[V3(0, 18, 80), V3(0, 5, -80)], [ground(-30, 40, 2), V3(20, 8, -90)], [ground(10, 24, 1.4), V3(-10, 1, -60)], [ground(25, 60, 3), V3(-30, 10, -100)]];
+
+function frame(now) {
+  const dt = Math.min(0.05, (now - timer.last) / 1000); timer.last = now;
+  timer.t += dt; const t = timer.t;
+  U.uTime.value = t;
+  updateSky(dt, t);
+
+  // öldulotan: sameiginleg fyrir myndina og hljóðið
+  const n = Math.floor(t / WAVE_PERIOD), ph = (t / WAVE_PERIOD) % 1;
+  U.uSurgePhase.value = ph; U.uSurgeAmp.value = 0.7 + 0.6 * hash1(n);
+  if (prevPhase < CRASH_AT && ph >= CRASH_AT && onCrash) onCrash();
+  prevPhase = ph;
+
+  birds.update(t); butterflies.update(t);
+  lanterns.forEach(l => l.update(t)); wishes.forEach(w => w.update(t));
+
+  // frjáls hamur: myndavélin reikar hægt á milli staða
+  if (document.body.classList.contains('free')) {
+    const k = Math.max(0, Math.floor((t - freeTour) / 22)) % TOUR.length; setShot(TOUR[k][0], TOUR[k][1]);
+  }
+  const ease = 1 - Math.exp(-dt * 0.7);
+  cam.pos.lerp(cam.tPos, ease); cam.look.lerp(cam.tLook, ease);
+  if (!down) { cam.yaw *= 1 - dt * 0.12; cam.pitch *= 1 - dt * 0.12; }
+  camera.position.copy(cam.pos);
+  camera.position.x += Math.sin(t * 0.09) * 0.8; camera.position.y += Math.sin(t * 0.13) * 0.25;
+  cam.breathY = (cam.breathY || 0) + ((cam.breath ? 0.9 : 0) - (cam.breathY || 0)) * (1 - Math.exp(-dt * (cam.breath ? 0.6 : 0.4)));
+  camera.position.y += cam.breathY;
+  camera.position.y = Math.max(camera.position.y, terrainH(camera.position.x, camera.position.z) + 0.6);
+  lookDir.subVectors(cam.look, cam.pos).normalize();
+  lookDir.applyAxisAngle(up, cam.yaw - cam.px * 0.08);
+  right.crossVectors(lookDir, up).normalize();
+  lookDir.applyAxisAngle(right, cam.pitch - cam.py * 0.05);
+  camera.lookAt(tmpV.copy(camera.position).add(lookDir));
+  sky.position.copy(camera.position);
+
+  sound.update(t, U.uDay.value, U.uNight.value);
+  composer.render();
+  updateTags();
+  requestAnimationFrame(frame);
+}
+// litil handföng fyrir prófanir í vafra-console
+window.__lif = { clock, cam, go, U };
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
