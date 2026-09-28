@@ -1002,14 +1002,15 @@ const sound = {
     const pink = noise(false), brown = noise(true);
     const loop = (buf) => { const s = ctx.createBufferSource(); s.buffer = buf; s.loop = true; s.loopStart = Math.random(); s.start(0, Math.random() * 5); return s; };
     // hafið: djúpt brim
-    this.oceanLP = ctx.createBiquadFilter(); this.oceanLP.type = 'lowpass'; this.oceanLP.frequency.value = 420; this.oceanLP.Q.value = 0.4;
-    this.oceanGain = ctx.createGain(); this.oceanGain.gain.value = 0.22;
+    this.oceanLP = ctx.createBiquadFilter(); this.oceanLP.type = 'lowpass'; this.oceanLP.frequency.value = 360; this.oceanLP.Q.value = 0.3;
+    this.oceanGain = ctx.createGain(); this.oceanGain.gain.value = 0.15;
     loop(brown).connect(this.oceanLP).connect(this.oceanGain).connect(this.bus.sea);
     this.oceanGain.connect(this.verb);
     // öldubrot: hvítt suð sem skellur og dregur sig til baka
-    this.surfHP = ctx.createBiquadFilter(); this.surfHP.type = 'highpass'; this.surfHP.frequency.value = 700;
+    this.surfHP = ctx.createBiquadFilter(); this.surfHP.type = 'highpass'; this.surfHP.frequency.value = 400;
+    const surfLP = ctx.createBiquadFilter(); surfLP.type = 'lowpass'; surfLP.frequency.value = 3200; surfLP.Q.value = 0.3;
     this.surfGain = ctx.createGain(); this.surfGain.gain.value = 0.0001;
-    loop(pink).connect(this.surfHP).connect(this.surfGain).connect(this.bus.sea);
+    loop(pink).connect(this.surfHP).connect(surfLP).connect(this.surfGain).connect(this.bus.sea);
     this.surfGain.connect(this.verb);
     // vindurinn
     this.windBP = ctx.createBiquadFilter(); this.windBP.type = 'bandpass'; this.windBP.frequency.value = 480; this.windBP.Q.value = 0.7;
@@ -1028,14 +1029,15 @@ const sound = {
   setMuted(m) { this.muted = m; if (this.ctx) this.master.gain.setTargetAtTime(m ? 0 : 0.9, this.ctx.currentTime, 0.3); },
   scheduleWave(t0, amp) {
     const P = WAVE_PERIOD, tc = t0 + CRASH_AT * P, g = this.oceanGain.gain, f = this.oceanLP.frequency;
-    g.linearRampToValueAtTime(0.2, t0 + 0.25 * P); f.linearRampToValueAtTime(380, t0 + 0.25 * P);
-    g.linearRampToValueAtTime(0.2 + 0.2 * amp, tc - 0.2); f.linearRampToValueAtTime(900, tc - 0.2);
-    g.linearRampToValueAtTime(0.55 * amp, tc + 0.12); f.linearRampToValueAtTime(1700, tc + 0.12);
-    g.linearRampToValueAtTime(0.2, t0 + 1.2 * P); f.linearRampToValueAtTime(400, t0 + 1.2 * P);
+    // mjúk bylgja: rís hægt, brotnar blítt og hjaðnar lengi
+    g.linearRampToValueAtTime(0.13, t0 + 0.25 * P); f.linearRampToValueAtTime(340, t0 + 0.25 * P);
+    g.linearRampToValueAtTime(0.13 + 0.08 * amp, tc - 0.4); f.linearRampToValueAtTime(560, tc - 0.4);
+    g.linearRampToValueAtTime(0.13 + 0.14 * amp, tc + 0.6); f.linearRampToValueAtTime(820, tc + 0.6);
+    g.linearRampToValueAtTime(0.13, t0 + 1.2 * P); f.linearRampToValueAtTime(360, t0 + 1.2 * P);
     const s = this.surfGain.gain, h = this.surfHP.frequency;
-    s.setValueAtTime(0.0001, tc - 0.08); s.exponentialRampToValueAtTime(0.32 * amp, tc + 0.1);
-    s.exponentialRampToValueAtTime(0.09 * amp, tc + 1.6); s.exponentialRampToValueAtTime(0.0001, tc + 4.2);
-    h.setValueAtTime(500, tc - 0.08); h.exponentialRampToValueAtTime(2600, tc + 3.8);
+    s.setValueAtTime(0.0001, tc - 0.5); s.exponentialRampToValueAtTime(0.11 * amp, tc + 0.55);
+    s.exponentialRampToValueAtTime(0.04 * amp, tc + 2.2); s.exponentialRampToValueAtTime(0.0001, tc + 5.0);
+    h.setValueAtTime(350, tc - 0.5); h.exponentialRampToValueAtTime(1400, tc + 4.6);
   },
   voice(t, pan, dest, wet = 0.4) {
     const p = this.ctx.createStereoPanner(); p.pan.value = pan;
@@ -1101,7 +1103,7 @@ const sound = {
       this.windBP.frequency.setTargetAtTime(rand(320, 750), now, 2.2); this.nextWind = now + rand(2, 5); }
     // athygli: eitt hljóð í forgrunni í smástund
     const f = now < this.focusUntil ? this.focusLayer : null;
-    const lvl = (name, base) => f ? (f === name ? base * 2.2 : base * 0.3) : base;
+    const lvl = (name, base) => f ? (f === name ? base * (name === 'sea' ? 1.5 : 2.2) : base * 0.3) : base;
     this.bus.sea.gain.setTargetAtTime(lvl('sea', 1), now, 0.6);
     this.bus.birds.gain.setTargetAtTime(lvl('birds', f === 'birds' ? 0.8 : dayF), now, 0.6);
     this.bus.wind.gain.setTargetAtTime(lvl('wind', 1), now, 0.6);
